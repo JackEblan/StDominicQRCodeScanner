@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">St. Dominic QR Code Scanner</string>
+    <string name="borrow">Borrow</string>
+    <string name="returns">Return</string>
 </resources>
