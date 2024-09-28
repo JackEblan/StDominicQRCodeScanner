@@ -6,6 +6,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import st.dominic.qrcodescanner.feature.book.navigation.BookRouteData
 import st.dominic.qrcodescanner.feature.book.navigation.bookScreen
+import st.dominic.qrcodescanner.feature.borrow.navigation.borrowScreen
+import st.dominic.qrcodescanner.feature.borrow.navigation.navigateToBorrowScreen
 
 @Composable
 fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
@@ -17,6 +19,8 @@ fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
         startDestination = BookRouteData::class,
     ) {
 
-        bookScreen()
+        bookScreen(onBorrowBook = navController::navigateToBorrowScreen)
+
+        borrowScreen()
     }
 }

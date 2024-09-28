@@ -10,4 +10,16 @@ class DefaultBookRepository @Inject constructor(private val bookDataSource: Book
     override fun getBorrowedBooksDocuments(studentId: String): Flow<List<Book>> {
         return bookDataSource.getBorrowedBooksDocuments(studentId = studentId)
     }
+
+    override suspend fun addBook(book: Book) {
+        bookDataSource.addBook(book = book)
+    }
+
+    override suspend fun updateBookStatus(book: Book) {
+        bookDataSource.updateBookStatus(book = book)
+    }
+
+    override suspend fun deleteBook(id: String) {
+        bookDataSource.deleteBook(id = id)
+    }
 }

@@ -1,13 +1,13 @@
-package st.dominic.qrcodescanner.feature.book.navigation
+package st.dominic.qrcodescanner.feature.borrow.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import st.dominic.qrcodescanner.feature.book.BookRoute
+import st.dominic.qrcodescanner.feature.borrow.BorrowRoute
 
-fun NavController.navigateToBookScreen() {
-    navigate(BookRouteData) {
+fun NavController.navigateToBorrowScreen() {
+    navigate(BorrowRouteData) {
         popUpTo(graph.findStartDestination().id) {
             saveState = true
         }
@@ -16,8 +16,8 @@ fun NavController.navigateToBookScreen() {
     }
 }
 
-fun NavGraphBuilder.bookScreen(onBorrowBook: () -> Unit,) {
-    composable<BookRouteData> {
-        BookRoute(onBorrowBook = onBorrowBook)
+fun NavGraphBuilder.borrowScreen() {
+    composable<BorrowRouteData> {
+        BorrowRoute()
     }
 }

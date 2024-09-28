@@ -22,7 +22,6 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -35,37 +34,42 @@ import st.dominic.qrcodescanner.core.designsystem.component.ShimmerImage
 import st.dominic.qrcodescanner.core.model.Book
 import st.dominic.qrcodescanner.core.model.BookStatus
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookRoute(modifier: Modifier = Modifier, bookViewModel: BookViewModel = hiltViewModel()) {
-    val topAppBarScrollBehavior = enterAlwaysScrollBehavior()
+fun BookRoute(
+    modifier: Modifier = Modifier, bookViewModel: BookViewModel = hiltViewModel(),
+    onBorrowBook: () -> Unit,
+) {
+
 
     val bookUiState = bookViewModel.bookUiState.collectAsStateWithLifecycle().value
 
     BookScreen(
         modifier = modifier,
-        topAppBarScrollBehavior = topAppBarScrollBehavior,
-        bookUiState = bookUiState
+        bookUiState = bookUiState,
+        onBorrowBook = onBorrowBook,
     )
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun BookScreen(
-    modifier: Modifier, topAppBarScrollBehavior: TopAppBarScrollBehavior, bookUiState: BookUiState,
+    modifier: Modifier, bookUiState: BookUiState,
+    onBorrowBook: () -> Unit,
 ) {
+    val topAppBarScrollBehavior = enterAlwaysScrollBehavior()
+
     Scaffold(topBar = {
         LargeTopAppBar(
             title = {
                 Text(
                     text = stringResource(id = R.string.app_name),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleLarge,
                 )
             },
             scrollBehavior = topAppBarScrollBehavior,
         )
     }, floatingActionButton = {
-        FloatingActionButton(onClick = {}) {
+        FloatingActionButton(onClick = onBorrowBook) {
             Icon(imageVector = Icons.Default.Add, contentDescription = "")
         }
     }) { paddingValues ->
