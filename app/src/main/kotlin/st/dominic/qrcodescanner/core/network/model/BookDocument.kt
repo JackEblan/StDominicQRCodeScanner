@@ -6,6 +6,7 @@ import st.dominic.qrcodescanner.core.model.BookStatus
 data class BookDocument(
     val id: String? = null,
     val imageUrl: String? = null,
+    val qrCode: String? = null,
     val title: String? = null,
     val author: String? = null,
     val dateBorrowed: Timestamp? = null,

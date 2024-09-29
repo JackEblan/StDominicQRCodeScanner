@@ -21,6 +21,6 @@ fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
 
         bookScreen(onBorrowBook = navController::navigateToBorrowScreen)
 
-        borrowScreen()
+        borrowScreen(onNavigateUp = navController::navigateUp)
     }
 }

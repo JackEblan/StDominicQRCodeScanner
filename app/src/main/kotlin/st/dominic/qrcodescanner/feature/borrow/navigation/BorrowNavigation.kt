@@ -16,8 +16,8 @@ fun NavController.navigateToBorrowScreen() {
     }
 }
 
-fun NavGraphBuilder.borrowScreen() {
+fun NavGraphBuilder.borrowScreen(onNavigateUp: () -> Unit) {
     composable<BorrowRouteData> {
-        BorrowRoute()
+        BorrowRoute(onNavigateUp = onNavigateUp)
     }
 }

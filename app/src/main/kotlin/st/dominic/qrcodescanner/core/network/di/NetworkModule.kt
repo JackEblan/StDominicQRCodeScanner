@@ -6,6 +6,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import st.dominic.qrcodescanner.core.network.firestore.BookDataSource
 import st.dominic.qrcodescanner.core.network.firestore.DefaultBookDataSource
+import st.dominic.qrcodescanner.core.network.storage.DefaultStorageDataSource
+import st.dominic.qrcodescanner.core.network.storage.StorageDataSource
 import javax.inject.Singleton
 
 @Module
@@ -14,4 +16,8 @@ interface NetworkModule {
     @Binds
     @Singleton
     fun bookDataSource(impl: DefaultBookDataSource): BookDataSource
+
+    @Binds
+    @Singleton
+    fun storageDataSource(impl: DefaultStorageDataSource): StorageDataSource
 }

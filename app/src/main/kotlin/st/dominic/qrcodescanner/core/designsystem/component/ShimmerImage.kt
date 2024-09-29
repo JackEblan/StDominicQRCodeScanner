@@ -24,14 +24,14 @@ import st.dominic.qrcodescanner.R
 @Composable
 fun ShimmerImage(
     modifier: Modifier = Modifier,
-    imageUrl: String?,
+    model: Any?,
 ) {
     var isLoading by remember { mutableStateOf(true) }
 
     var isError by remember { mutableStateOf(false) }
 
     val imageLoader = rememberAsyncImagePainter(
-        model = imageUrl,
+        model = model,
         onState = { state ->
             isLoading = state is AsyncImagePainter.State.Loading
             isError = state is AsyncImagePainter.State.Error

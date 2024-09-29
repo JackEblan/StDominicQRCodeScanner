@@ -119,7 +119,7 @@ private fun BookItem(modifier: Modifier = Modifier, book: Book) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(180.dp),
-            imageUrl = book.imageUrl,
+            model = book.imageUrl,
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -133,10 +133,13 @@ private fun BookItem(modifier: Modifier = Modifier, book: Book) {
 
             BookItemText(title = "Author", subtitle = book.author)
 
-            BookItemText(title = "Date Borrowed", subtitle = book.dateBorrowed)
+            BookItemText(title = "Date Borrowed", subtitle = book.dateBorrowed ?: "Invalid date")
 
             if (book.bookStatus == BookStatus.Returned) {
-                BookItemText(title = "Date Returned", subtitle = book.dateReturned)
+                BookItemText(
+                    title = "Date Returned",
+                    subtitle = book.dateReturned ?: "Invalid date"
+                )
             }
         }
     }

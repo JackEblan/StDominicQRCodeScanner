@@ -1,5 +1,6 @@
 package st.dominic.qrcodescanner.core.network.firestore
 
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.snapshots
@@ -35,20 +36,26 @@ class DefaultBookDataSource @Inject constructor(
     }
 
     override suspend fun addBook(book: Book) {
-        val id = firestore.collection(BOOK_COLLECTION).add(book).await().id
+        firestore.collection(BOOK_COLLECTION).document(book.id).set(book).await()
 
-        firestore.collection(BOOK_COLLECTION).document(id).update("id", id).await()
+        firestore.collection(BOOK_COLLECTION).document(book.id)
+            .update("dateBorrowed", FieldValue.serverTimestamp())
     }
 
     override suspend fun updateBookStatus(book: Book) {
         firestore.collection(BOOK_COLLECTION).document(book.id).update(
             mapOf(
-                BOOK_STATUS to book.bookStatus
+                "dateReturned" to book.dateReturned,
+                BOOK_STATUS to book.bookStatus,
             )
         ).await()
     }
 
     override suspend fun deleteBook(id: String) {
         firestore.collection(BOOK_COLLECTION).document(id).delete().await()
+    }
+
+    override fun generateBookId(): String {
+        return firestore.collection(BOOK_COLLECTION).document().id
     }
 }

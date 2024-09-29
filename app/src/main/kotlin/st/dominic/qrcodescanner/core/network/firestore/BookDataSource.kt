@@ -12,6 +12,8 @@ interface BookDataSource {
 
     suspend fun deleteBook(id: String)
 
+    fun generateBookId(): String
+
     companion object {
         const val BOOK_COLLECTION = "book"
     }

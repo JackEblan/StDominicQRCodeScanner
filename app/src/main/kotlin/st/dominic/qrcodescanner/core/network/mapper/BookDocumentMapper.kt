@@ -10,6 +10,8 @@ fun toBook(bookDocument: BookDocument): Book {
 
     val imageUrl = bookDocument.imageUrl.toString()
 
+    val qrCode = bookDocument.qrCode.toString()
+
     val title = bookDocument.title.toString()
 
     val author = bookDocument.author.toString()
@@ -18,7 +20,7 @@ fun toBook(bookDocument: BookDocument): Book {
         bookDocument.dateBorrowed?.toDate()?.let(DateFormat.getDateInstance()::format).toString()
 
     val dateReturned =
-        bookDocument.dateReturned?.toDate()?.let(DateFormat.getDateInstance()::format).toString()
+        bookDocument.dateReturned?.toDate()?.let(DateFormat.getDateInstance()::format)
 
     val studentId = bookDocument.studentId.toString()
 
@@ -29,6 +31,7 @@ fun toBook(bookDocument: BookDocument): Book {
     return Book(
         id = id,
         imageUrl = imageUrl,
+        qrCode = qrCode,
         title = title,
         author = author,
         dateBorrowed = dateBorrowed,
