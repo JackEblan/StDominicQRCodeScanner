@@ -8,6 +8,10 @@ import st.dominic.qrcodescanner.feature.book.navigation.BookRouteData
 import st.dominic.qrcodescanner.feature.book.navigation.bookScreen
 import st.dominic.qrcodescanner.feature.borrow.navigation.borrowScreen
 import st.dominic.qrcodescanner.feature.borrow.navigation.navigateToBorrowScreen
+import st.dominic.qrcodescanner.feature.signin.navigation.navigateToSignIn
+import st.dominic.qrcodescanner.feature.signin.navigation.signInScreen
+import st.dominic.qrcodescanner.feature.signup.navigation.navigateToSignUp
+import st.dominic.qrcodescanner.feature.signup.navigation.signUpScreen
 
 @Composable
 fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
@@ -19,8 +23,18 @@ fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
         startDestination = BookRouteData::class,
     ) {
 
-        bookScreen(onBorrowBook = navController::navigateToBorrowScreen)
+        bookScreen(
+            onBorrowBook = navController::navigateToBorrowScreen,
+            onSignIn = navController::navigateToSignIn
+        )
 
         borrowScreen(onNavigateUp = navController::navigateUp)
+
+        signInScreen(
+            onSignInSuccess = navController::navigateUp,
+            onCreateAccount = navController::navigateToSignUp
+        )
+
+        signUpScreen(onSignUpSuccess = navController::navigateUp)
     }
 }

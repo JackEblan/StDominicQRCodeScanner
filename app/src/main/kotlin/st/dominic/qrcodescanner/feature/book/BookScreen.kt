@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -20,9 +22,15 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -31,6 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import st.dominic.qrcodescanner.R
 import st.dominic.qrcodescanner.core.designsystem.component.ShimmerImage
+import st.dominic.qrcodescanner.core.model.AuthCurrentUser
 import st.dominic.qrcodescanner.core.model.Book
 import st.dominic.qrcodescanner.core.model.BookStatus
 
@@ -38,15 +47,18 @@ import st.dominic.qrcodescanner.core.model.BookStatus
 fun BookRoute(
     modifier: Modifier = Modifier, bookViewModel: BookViewModel = hiltViewModel(),
     onBorrowBook: () -> Unit,
+    onSignIn: () -> Unit,
 ) {
-
+    val authCurrentUser = bookViewModel.authCurrentUser
 
     val bookUiState = bookViewModel.bookUiState.collectAsStateWithLifecycle().value
 
     BookScreen(
         modifier = modifier,
         bookUiState = bookUiState,
+        authCurrentUser = authCurrentUser,
         onBorrowBook = onBorrowBook,
+        onSignIn = onSignIn,
     )
 }
 
@@ -54,9 +66,29 @@ fun BookRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 private fun BookScreen(
     modifier: Modifier, bookUiState: BookUiState,
+    authCurrentUser: AuthCurrentUser?,
     onBorrowBook: () -> Unit,
+    onSignIn: () -> Unit,
 ) {
     val topAppBarScrollBehavior = enterAlwaysScrollBehavior()
+
+    val snackbarHostState = remember {
+        SnackbarHostState()
+    }
+
+    LaunchedEffect(key1 = true) {
+        if (authCurrentUser == null) {
+            val result = snackbarHostState.showSnackbar(
+                message = "You are currently not signed in!", actionLabel = "Sign in",
+                duration = SnackbarDuration.Indefinite,
+            )
+
+            when (result) {
+                SnackbarResult.Dismissed -> Unit
+                SnackbarResult.ActionPerformed -> onSignIn()
+            }
+        }
+    }
 
     Scaffold(topBar = {
         LargeTopAppBar(
@@ -72,6 +104,8 @@ private fun BookScreen(
         FloatingActionButton(onClick = onBorrowBook) {
             Icon(imageVector = Icons.Default.Add, contentDescription = "")
         }
+    }, snackbarHost = {
+        SnackbarHost(hostState = snackbarHostState)
     }) { paddingValues ->
         Box(
             modifier = modifier
@@ -86,7 +120,9 @@ private fun BookScreen(
                 }
 
                 is BookUiState.Success -> {
-                    SuccessState(bookUiState = bookUiState)
+                    SuccessState(
+                        bookUiState = bookUiState, authCurrentUser = authCurrentUser
+                    )
                 }
             }
         }
@@ -95,11 +131,21 @@ private fun BookScreen(
 }
 
 @Composable
-fun SuccessState(modifier: Modifier = Modifier, bookUiState: BookUiState.Success) {
+fun SuccessState(
+    modifier: Modifier = Modifier,
+    bookUiState: BookUiState.Success,
+    authCurrentUser: AuthCurrentUser?,
+) {
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(300.dp),
         modifier = modifier.fillMaxSize(),
     ) {
+        if (authCurrentUser != null) {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                CurrentUserItem(authCurrentUser = authCurrentUser)
+            }
+        }
+
         items(bookUiState.books) { book ->
             BookItem(book = book)
         }
@@ -129,16 +175,15 @@ private fun BookItem(modifier: Modifier = Modifier, book: Book) {
                 .fillMaxWidth()
                 .padding(10.dp),
         ) {
-            BookItemText(title = "Title", subtitle = book.title)
+            LabeledText(title = "Title", subtitle = book.title)
 
-            BookItemText(title = "Author", subtitle = book.author)
+            LabeledText(title = "Author", subtitle = book.author)
 
-            BookItemText(title = "Date Borrowed", subtitle = book.dateBorrowed ?: "Invalid date")
+            LabeledText(title = "Date Borrowed", subtitle = book.dateBorrowed ?: "Invalid date")
 
             if (book.bookStatus == BookStatus.Returned) {
-                BookItemText(
-                    title = "Date Returned",
-                    subtitle = book.dateReturned ?: "Invalid date"
+                LabeledText(
+                    title = "Date Returned", subtitle = book.dateReturned ?: "Invalid date"
                 )
             }
         }
@@ -146,7 +191,44 @@ private fun BookItem(modifier: Modifier = Modifier, book: Book) {
 }
 
 @Composable
-private fun BookItemText(title: String, subtitle: String) {
+private fun CurrentUserItem(modifier: Modifier = Modifier, authCurrentUser: AuthCurrentUser) {
+    OutlinedCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(10.dp),
+        onClick = {},
+    ) {
+        ShimmerImage(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp),
+            model = "",
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+        ) {
+            Text(text = "Welcome User!", style = MaterialTheme.typography.headlineSmall)
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            LabeledText(title = "User ID", subtitle = authCurrentUser.uid.toString())
+
+            LabeledText(title = "Email", subtitle = authCurrentUser.email.toString())
+
+            Button(onClick = {}) {
+                Text(text = "Sign Out")
+            }
+        }
+    }
+}
+
+@Composable
+private fun LabeledText(title: String, subtitle: String) {
     Text(text = title, style = MaterialTheme.typography.bodyLarge)
 
     Spacer(modifier = Modifier.height(10.dp))
