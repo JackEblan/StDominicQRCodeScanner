@@ -16,8 +16,8 @@ fun NavController.navigateToBookScreen() {
     }
 }
 
-fun NavGraphBuilder.bookScreen(onBorrowBook: () -> Unit, onSignIn: () -> Unit) {
+fun NavGraphBuilder.bookScreen() {
     composable<BookRouteData> {
-        BookRoute(onBorrowBook = onBorrowBook, onSignIn = onSignIn)
+        BookRoute()
     }
 }

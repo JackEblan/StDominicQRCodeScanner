@@ -17,27 +17,32 @@ fun rememberSignUpState(): SignUpState {
 
 @Stable
 class SignUpState {
+    var name by mutableStateOf("")
+
     var email by mutableStateOf("")
 
     var password by mutableStateOf("")
 
     fun validateFields(): Boolean {
-        return email.isNotEmpty() && password.isNotEmpty()
+        return name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()
     }
 
     companion object {
         val Saver = listSaver<SignUpState, Any>(
             save = { state ->
                 listOf(
+                    state.name,
                     state.email,
                     state.password,
                 )
             },
             restore = {
                 SignUpState().apply {
-                    email = it[0] as String
+                    name = it[0] as String
 
-                    password = it[1] as String
+                    email = it[1] as String
+
+                    password = it[2] as String
                 }
             },
         )

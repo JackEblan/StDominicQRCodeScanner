@@ -7,10 +7,10 @@ import javax.inject.Inject
 class DefaultEmailPasswordAuthenticationRepository @Inject constructor(private val emailPasswordAuthentication: EmailPasswordAuthentication) :
     EmailPasswordAuthenticationRepository {
     override suspend fun createUserWithEmailAndPassword(
-        email: String, password: String
+        name: String, email: String, password: String
     ): Result<Boolean> {
         return emailPasswordAuthentication.createUserWithEmailAndPassword(
-            email = email, password = password
+            name = name, email = email, password = password
         )
     }
 
@@ -24,5 +24,9 @@ class DefaultEmailPasswordAuthenticationRepository @Inject constructor(private v
 
     override fun getCurrentUser(): AuthCurrentUser? {
         return emailPasswordAuthentication.getCurrentUser()
+    }
+
+    override fun signOut() {
+        emailPasswordAuthentication.signOut()
     }
 }

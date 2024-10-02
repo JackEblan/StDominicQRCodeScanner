@@ -56,7 +56,7 @@ fun SignUpRoute(
 fun SignUpScreen(
     modifier: Modifier = Modifier,
     signUpErrorMessage: String?,
-    onSignUp: (email: String, password: String) -> Unit,
+    onSignUp: (name: String, email: String, password: String) -> Unit,
 ) {
     val signUpState = rememberSignUpState()
 
@@ -93,6 +93,21 @@ fun SignUpScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(5.dp),
+                value = signUpState.name,
+                onValueChange = {
+                    signUpState.name = it
+                },
+                label = {
+                    Text(text = "Name")
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            )
+
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(5.dp),
                 value = signUpState.email,
                 onValueChange = {
                     signUpState.email = it
@@ -121,7 +136,7 @@ fun SignUpScreen(
 
             Button(onClick = {
                 if (signUpState.validateFields()) {
-                    onSignUp(signUpState.email, signUpState.password)
+                    onSignUp(signUpState.name, signUpState.email, signUpState.password)
                 } else {
                     scope.launch { snackbarHostState.showSnackbar(message = "We cannot process your request!") }
                 }
@@ -130,5 +145,4 @@ fun SignUpScreen(
             }
         }
     }
-
 }

@@ -21,10 +21,10 @@ class SignUpViewModel @Inject constructor(private val emailPasswordAuthenticatio
 
     val signUpErrorMessage = _signUpErrorMessage.asStateFlow()
 
-    fun createUserWithEmailAndPassword(email: String, password: String) {
+    fun createUserWithEmailAndPassword(name: String, email: String, password: String) {
         viewModelScope.launch {
             emailPasswordAuthenticationRepository.createUserWithEmailAndPassword(
-                email = email, password = password
+                name = name, email = email, password = password
             ).onSuccess { result ->
                 _signUpResult.update {
                     result
