@@ -5,28 +5,28 @@ import st.dominic.qrcodescanner.core.model.BookStatus
 import st.dominic.qrcodescanner.core.network.model.BookDocument
 import java.text.DateFormat
 
-fun toBook(bookDocument: BookDocument): Book {
-    val id = bookDocument.id.toString()
+fun toBook(bookDocument: BookDocument?): Book {
+    val id = bookDocument?.id.toString()
 
-    val imageUrl = bookDocument.imageUrl.toString()
+    val imageUrl = bookDocument?.imageUrl.toString()
 
-    val qrCode = bookDocument.qrCode.toString()
+    val qrCode = bookDocument?.qrCode.toString()
 
-    val title = bookDocument.title.toString()
+    val title = bookDocument?.title.toString()
 
-    val author = bookDocument.author.toString()
+    val author = bookDocument?.author.toString()
 
     val dateBorrowed =
-        bookDocument.dateBorrowed?.toDate()?.let(DateFormat.getDateInstance()::format).toString()
+        bookDocument?.dateBorrowed?.toDate()?.let(DateFormat.getDateInstance()::format).toString()
 
     val dateReturned =
-        bookDocument.dateReturned?.toDate()?.let(DateFormat.getDateInstance()::format)
+        bookDocument?.dateReturned?.toDate()?.let(DateFormat.getDateInstance()::format)
 
-    val studentId = bookDocument.studentId.toString()
+    val studentId = bookDocument?.studentId.toString()
 
-    val studentName = bookDocument.studentName.toString()
+    val studentName = bookDocument?.studentName.toString()
 
-    val bookStatus = bookDocument.bookStatus ?: BookStatus.Borrowed
+    val bookStatus = bookDocument?.bookStatus ?: BookStatus.Borrowed
 
     return Book(
         id = id,

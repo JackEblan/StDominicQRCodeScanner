@@ -4,7 +4,9 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import st.dominic.qrcodescanner.core.data.repository.AdminRepository
 import st.dominic.qrcodescanner.core.data.repository.BookRepository
+import st.dominic.qrcodescanner.core.data.repository.DefaultAdminRepository
 import st.dominic.qrcodescanner.core.data.repository.DefaultBookRepository
 import st.dominic.qrcodescanner.core.data.repository.DefaultEmailPasswordAuthenticationRepository
 import st.dominic.qrcodescanner.core.data.repository.DefaultQrCodeScannerRepository
@@ -27,4 +29,8 @@ interface DataModule {
     @Binds
     @Singleton
     fun emailPasswordAuthenticationRepository(impl: DefaultEmailPasswordAuthenticationRepository): EmailPasswordAuthenticationRepository
+
+    @Binds
+    @Singleton
+    fun adminRepository(impl: DefaultAdminRepository): AdminRepository
 }

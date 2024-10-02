@@ -98,11 +98,11 @@ private fun ProfileDetails(authCurrentUser: AuthCurrentUser, onSignOut: () -> Un
 
     Spacer(modifier = Modifier.height(20.dp))
 
-    ProfileText(title = "Name", subtitle = authCurrentUser.uid.toString())
+    ProfileText(title = "Name", subtitle = authCurrentUser.displayName)
 
-    ProfileText(title = "User ID", subtitle = authCurrentUser.uid.toString())
+    ProfileText(title = "User ID", subtitle = authCurrentUser.uid)
 
-    ProfileText(title = "Email", subtitle = authCurrentUser.email.toString())
+    ProfileText(title = "Email", subtitle = authCurrentUser.email)
 
     Button(onClick = onSignOut) {
         Text(text = "Sign Out")

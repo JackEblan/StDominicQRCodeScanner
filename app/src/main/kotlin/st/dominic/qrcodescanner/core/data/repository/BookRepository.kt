@@ -3,14 +3,17 @@ package st.dominic.qrcodescanner.core.data.repository
 import android.net.Uri
 import kotlinx.coroutines.flow.Flow
 import st.dominic.qrcodescanner.core.model.Book
+import st.dominic.qrcodescanner.core.model.BookStatus
 import st.dominic.qrcodescanner.core.model.UploadFileResult
 
 interface BookRepository {
-    fun getBorrowedBooksDocuments(studentId: String): Flow<List<Book>>
+    fun getBorrowedBooksByStudentId(studentId: String): Flow<List<Book>>
+
+    fun getBorrowedBooks(): Flow<List<Book>>
 
     suspend fun addBook(book: Book)
 
-    suspend fun updateBookStatus(book: Book)
+    suspend fun updateBookStatus(id: String, bookStatus: BookStatus)
 
     suspend fun deleteBook(id: String)
 
@@ -20,6 +23,8 @@ interface BookRepository {
 
 
     fun generateBookId(): String
+
+    suspend fun getBook(id: String): Book?
 
     companion object {
         const val BOOK_REFERENCE = "book"

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.tasks.await
 import st.dominic.qrcodescanner.core.model.Book
+import st.dominic.qrcodescanner.core.model.BookStatus
 import st.dominic.qrcodescanner.core.network.firestore.BookDataSource.Companion.BOOK_COLLECTION
 import st.dominic.qrcodescanner.core.network.mapper.toBook
 import st.dominic.qrcodescanner.core.network.model.BookDocument
@@ -21,8 +22,22 @@ import javax.inject.Inject
 class DefaultBookDataSource @Inject constructor(
     private val firestore: FirebaseFirestore,
 ) : BookDataSource {
-    override fun getBorrowedBooksDocuments(studentId: String): Flow<List<Book>> {
+    override fun getBorrowedBooksDocumentsByStudentId(studentId: String): Flow<List<Book>> {
         return firestore.collection(BOOK_COLLECTION).whereEqualTo(STUDENT_ID, studentId)
+            .orderBy(DATE_BORROWED, Query.Direction.DESCENDING).snapshots()
+            .mapNotNull { querySnapshots ->
+                querySnapshots.mapNotNull { queryDocumentSnapshot ->
+                    try {
+                        toBook(bookDocument = queryDocumentSnapshot.toObject<BookDocument>())
+                    } catch (e: RuntimeException) {
+                        null
+                    }
+                }
+            }.distinctUntilChanged()
+    }
+
+    override fun getBorrowedBooksDocuments(): Flow<List<Book>> {
+        return firestore.collection(BOOK_COLLECTION)
             .orderBy(DATE_BORROWED, Query.Direction.DESCENDING).snapshots()
             .mapNotNull { querySnapshots ->
                 querySnapshots.mapNotNull { queryDocumentSnapshot ->
@@ -42,11 +57,11 @@ class DefaultBookDataSource @Inject constructor(
             .update("dateBorrowed", FieldValue.serverTimestamp())
     }
 
-    override suspend fun updateBookStatus(book: Book) {
-        firestore.collection(BOOK_COLLECTION).document(book.id).update(
+    override suspend fun updateBookStatus(id: String, bookStatus: BookStatus) {
+        firestore.collection(BOOK_COLLECTION).document(id).update(
             mapOf(
-                "dateReturned" to book.dateReturned,
-                BOOK_STATUS to book.bookStatus,
+                "dateReturned" to FieldValue.serverTimestamp(),
+                BOOK_STATUS to bookStatus,
             )
         ).await()
     }
@@ -57,5 +72,15 @@ class DefaultBookDataSource @Inject constructor(
 
     override fun generateBookId(): String {
         return firestore.collection(BOOK_COLLECTION).document().id
+    }
+
+    override suspend fun getBook(id: String): Book? {
+        val documentSnapshot = firestore.collection(BOOK_COLLECTION).document(id).get().await()
+
+        return try {
+            toBook(bookDocument = documentSnapshot.toObject<BookDocument>())
+        } catch (e: RuntimeException) {
+            null
+        }
     }
 }

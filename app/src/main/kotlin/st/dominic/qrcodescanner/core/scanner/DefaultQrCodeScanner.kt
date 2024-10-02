@@ -1,42 +1,66 @@
 package st.dominic.qrcodescanner.core.scanner
 
-import android.content.Context
-import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
-import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.google.android.gms.common.moduleinstall.ModuleInstallClient
+import com.google.android.gms.common.moduleinstall.ModuleInstallRequest
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 import kotlinx.coroutines.suspendCancellableCoroutine
-import st.dominic.qrcodescanner.core.model.QrCodeResult
 import javax.inject.Inject
 import kotlin.coroutines.resume
 
-class DefaultQrCodeScanner @Inject constructor(@ApplicationContext private val context: Context) :
-    QrCodeScanner {
-    private val options = GmsBarcodeScannerOptions.Builder().setBarcodeFormats(
-        Barcode.FORMAT_QR_CODE
-    ).enableAutoZoom().build()
+class DefaultQrCodeScanner @Inject constructor(
+    private val scanner: GmsBarcodeScanner,
+    private val moduleInstallClient: ModuleInstallClient,
+    private val listener: ModuleInstallProgressListener
+) : QrCodeScanner {
 
-    private val scanner = GmsBarcodeScanning.getClient(context, options)
+    override val moduleInstallProgress get() = listener.moduleInstallProgress
 
-    override suspend fun startScan(): QrCodeResult {
+    override suspend fun startScan(): Result<String> {
         return suspendCancellableCoroutine { cancellableContinuation ->
-            scanner.startScan().addOnSuccessListener { barcode ->
-                cancellableContinuation.resume(
-                    QrCodeResult(
-                        rawValue = barcode.rawValue, exception = null
+            scanner.startScan().addOnSuccessListener { qrCode ->
+                qrCode.rawValue?.let {
+                    cancellableContinuation.resume(
+                        Result.success(it)
                     )
-                )
+                }
             }.addOnCanceledListener {
                 cancellableContinuation.resume(
-                    QrCodeResult(
-                        rawValue = null, exception = null
-                    )
+                    Result.failure(NullPointerException())
                 )
-            }.addOnFailureListener { e ->
+            }.addOnFailureListener {
                 cancellableContinuation.resume(
-                    QrCodeResult(
-                        rawValue = null, exception = e
-                    )
+                    Result.failure(it)
+                )
+            }
+        }
+    }
+
+    override suspend fun isScannerModuleAlreadyInstalled(): Result<Boolean> {
+        val moduleInstallRequest =
+            ModuleInstallRequest.newBuilder().addApi(scanner).setListener(listener).build()
+
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            moduleInstallClient.installModules(moduleInstallRequest).addOnSuccessListener {
+                cancellableContinuation.resume(
+                    Result.success(it.areModulesAlreadyInstalled())
+                )
+            }.addOnFailureListener {
+                cancellableContinuation.resume(
+                    Result.failure(it)
+                )
+            }
+        }
+    }
+
+    override suspend fun isScannerModuleAvailable(): Result<Boolean> {
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            moduleInstallClient.areModulesAvailable(scanner).addOnSuccessListener {
+                cancellableContinuation.resume(
+                    Result.success(it.areModulesAvailable())
+                )
+            }.addOnFailureListener {
+                cancellableContinuation.resume(
+                    Result.failure(it)
                 )
             }
         }

@@ -3,6 +3,7 @@
     <string name="borrow">Borrow</string>
     <string name="returns">Return</string>
     <string name="borrow_book">Borrow Book</string>
+    <string name="return_book">Return Book</string>
     <string name="book">Book</string>
     <string name="profile">Profile</string>
 </resources>

@@ -6,6 +6,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import st.dominic.qrcodescanner.feature.admin.navigation.adminScreen
+import st.dominic.qrcodescanner.feature.admin.navigation.navigateToAdminScreen
 import st.dominic.qrcodescanner.feature.book.navigation.BookRouteData
 import st.dominic.qrcodescanner.feature.book.navigation.bookScreen
 import st.dominic.qrcodescanner.feature.book.navigation.navigateToBookScreen
@@ -46,7 +48,7 @@ fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
             },
             onFloatingActionButtonClick = navController::navigateToBorrowScreen,
             builder = {
-                bookScreen()
+                bookScreen(onBookClick = navController::navigateToAdminScreen)
 
                 profileScreen(onSignIn = navController::navigateToSignIn)
             },
@@ -60,5 +62,7 @@ fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
         )
 
         signUpScreen(onSignUpSuccess = navController::navigateUp)
+
+        adminScreen(onNavigateUp = navController::navigateUp)
     }
 }

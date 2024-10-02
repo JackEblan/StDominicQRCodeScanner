@@ -1,7 +1,13 @@
 package st.dominic.qrcodescanner.core.scanner
 
-import st.dominic.qrcodescanner.core.model.QrCodeResult
+import kotlinx.coroutines.flow.SharedFlow
 
 interface QrCodeScanner {
-    suspend fun startScan(): QrCodeResult
+    val moduleInstallProgress: SharedFlow<Float>
+
+    suspend fun startScan(): Result<String>
+
+    suspend fun isScannerModuleAlreadyInstalled(): Result<Boolean>
+
+    suspend fun isScannerModuleAvailable(): Result<Boolean>
 }

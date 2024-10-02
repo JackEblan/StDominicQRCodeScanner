@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -28,15 +29,19 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -53,7 +58,6 @@ import st.dominic.qrcodescanner.R
 import st.dominic.qrcodescanner.core.designsystem.component.ShimmerImage
 import st.dominic.qrcodescanner.core.model.BorrowBookResult
 import st.dominic.qrcodescanner.core.model.LocalBook
-import st.dominic.qrcodescanner.core.model.QrCodeResult
 
 @Composable
 fun BorrowRoute(
@@ -65,12 +69,18 @@ fun BorrowRoute(
 
     val qrCodeResultState = viewModel.qrCodeResultState.collectAsStateWithLifecycle().value
 
+    val qrCodeInstallError = viewModel.qrCodeErrorState.collectAsStateWithLifecycle().value
+
+    val moduleInstallProgress = viewModel.moduleInstallProgress.collectAsStateWithLifecycle().value
+
     BorrowScreen(
         modifier = modifier,
         borrowBookResultState = addBookResultState,
         qrCodeResult = qrCodeResultState,
+        qrCodeInstallError = qrCodeInstallError,
+        moduleInstallProgress = moduleInstallProgress,
         onBorrowBook = viewModel::borrowBook,
-        onStartScan = viewModel::startScan,
+        onStartScan = viewModel::isScannerModuleAvailable,
         onNavigateUp = onNavigateUp,
     )
 }
@@ -80,7 +90,9 @@ fun BorrowRoute(
 fun BorrowScreen(
     modifier: Modifier = Modifier, scrollState: ScrollState = rememberScrollState(),
     borrowBookResultState: BorrowBookResult?,
-    qrCodeResult: QrCodeResult?,
+    qrCodeResult: String?,
+    qrCodeInstallError: String?,
+    moduleInstallProgress: Float?,
     onBorrowBook: (LocalBook) -> Unit,
     onStartScan: () -> Unit,
     onNavigateUp: () -> Unit,
@@ -101,9 +113,19 @@ fun BorrowScreen(
         }
     }
 
+    val animatedProgress by animateFloatAsState(
+        targetValue = moduleInstallProgress ?: 0f,
+        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+        label = "animatedProgress"
+    )
+
     LaunchedEffect(key1 = borrowBookResultState) {
         if (borrowBookResultState?.exception != null) {
             snackbarHostState.showSnackbar(message = borrowBookResultState.exception.message.toString())
+        }
+
+        if (borrowBookResultState?.notSignedIn == true) {
+            snackbarHostState.showSnackbar(message = "Please sign in an account first!")
         }
 
         if (borrowBookResultState?.success == true) {
@@ -112,12 +134,22 @@ fun BorrowScreen(
     }
 
     LaunchedEffect(key1 = qrCodeResult) {
-        if (qrCodeResult?.exception != null) {
-            snackbarHostState.showSnackbar(message = qrCodeResult.exception.message.toString())
+        if (qrCodeResult != null) {
+            borrowBookState.qrCode = qrCodeResult
         }
+    }
 
-        if (qrCodeResult?.rawValue != null) {
-            borrowBookState.qrCode = qrCodeResult.rawValue
+    LaunchedEffect(key1 = qrCodeInstallError) {
+        if (qrCodeInstallError != null) {
+            snackbarHostState.showSnackbar(message = qrCodeInstallError)
+        }
+    }
+
+    LaunchedEffect(key1 = moduleInstallProgress) {
+        if (moduleInstallProgress != null) {
+            snackbarHostState.showSnackbar(
+                message = "Installing QR Code Libraries!", duration = SnackbarDuration.Indefinite
+            )
         }
     }
 
@@ -155,6 +187,12 @@ fun BorrowScreen(
                 .padding(paddingValues)
                 .consumeWindowInsets(paddingValues)
         ) {
+            if (moduleInstallProgress != null) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), progress = {
+                    animatedProgress
+                })
+            }
+
             ImagePicker(imageUri = borrowBookState.imageUri,
                         progress = borrowBookResultState?.progress,
                         onPickImage = {

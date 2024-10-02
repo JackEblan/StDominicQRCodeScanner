@@ -7,8 +7,8 @@ fun toAuthCurrentUser(firebaseUser: FirebaseUser?): AuthCurrentUser? {
     return if (firebaseUser != null) {
         AuthCurrentUser(
             uid = firebaseUser.uid,
-            displayName = firebaseUser.displayName,
-            email = firebaseUser.email,
+            displayName = firebaseUser.displayName.toString(),
+            email = firebaseUser.email.toString(),
         )
     } else {
         null

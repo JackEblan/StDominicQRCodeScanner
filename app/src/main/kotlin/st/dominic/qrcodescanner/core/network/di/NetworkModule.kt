@@ -6,7 +6,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import st.dominic.qrcodescanner.core.network.auth.DefaultEmailPasswordAuthentication
 import st.dominic.qrcodescanner.core.network.auth.EmailPasswordAuthentication
+import st.dominic.qrcodescanner.core.network.firestore.AdminDataSource
 import st.dominic.qrcodescanner.core.network.firestore.BookDataSource
+import st.dominic.qrcodescanner.core.network.firestore.DefaultAdminDataSource
 import st.dominic.qrcodescanner.core.network.firestore.DefaultBookDataSource
 import st.dominic.qrcodescanner.core.network.storage.DefaultStorageDataSource
 import st.dominic.qrcodescanner.core.network.storage.StorageDataSource
@@ -26,4 +28,8 @@ interface NetworkModule {
     @Binds
     @Singleton
     fun emailPasswordAuthentication(impl: DefaultEmailPasswordAuthentication): EmailPasswordAuthentication
+
+    @Binds
+    @Singleton
+    fun adminDataSource(impl: DefaultAdminDataSource): AdminDataSource
 }

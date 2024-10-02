@@ -16,6 +16,7 @@ data class BookDocument(
     val bookStatus: BookStatus? = null,
 ){
     companion object {
+        const val ID = "id"
         const val STUDENT_ID = "studentId"
         const val DATE_BORROWED = "dateBorrowed"
         const val BOOK_STATUS = "bookStatus"
