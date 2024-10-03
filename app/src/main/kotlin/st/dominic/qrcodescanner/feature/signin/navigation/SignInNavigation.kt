@@ -17,11 +17,11 @@ fun NavController.navigateToSignIn() {
 }
 
 fun NavGraphBuilder.signInScreen(
-    onSignInSuccess: () -> Unit, onCreateAccount: () -> Unit
+    onSignInSuccess: () -> Unit, onSignUp: () -> Unit
 ) {
     composable<SignInRouteData> {
         SignInRoute(
-            onSignInSuccess = onSignInSuccess, onCreateAccount = onCreateAccount
+            onSignInSuccess = onSignInSuccess, onSignUp = onSignUp
         )
     }
 }

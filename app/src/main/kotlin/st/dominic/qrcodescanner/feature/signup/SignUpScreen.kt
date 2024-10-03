@@ -1,6 +1,7 @@
 package st.dominic.qrcodescanner.feature.signup
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -10,7 +11,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -20,43 +25,41 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import st.dominic.qrcodescanner.R
 
 @Composable
 fun SignUpRoute(
     modifier: Modifier = Modifier, viewModel: SignUpViewModel = hiltViewModel(),
     onSignUpSuccess: () -> Unit,
 ) {
-    val signUpResult = viewModel.signUpResult.collectAsStateWithLifecycle().value
+    val signUpUiState = viewModel.signUpUiState.collectAsStateWithLifecycle().value
 
     val signUpErrorMessage = viewModel.signUpErrorMessage.collectAsStateWithLifecycle().value
 
-    LaunchedEffect(key1 = signUpResult) {
-        if (signUpResult == true) {
-            onSignUpSuccess()
-        }
-    }
-
     SignUpScreen(
         modifier = modifier,
+        signUpUiState = signUpUiState,
         signUpErrorMessage = signUpErrorMessage,
         onSignUp = viewModel::createUserWithEmailAndPassword,
+        onSignUpSuccess = onSignUpSuccess,
     )
 }
 
 @Composable
 fun SignUpScreen(
     modifier: Modifier = Modifier,
+    signUpUiState: SignUpUiState?,
     signUpErrorMessage: String?,
     onSignUp: (name: String, email: String, password: String) -> Unit,
+    onSignUpSuccess: () -> Unit,
 ) {
     val signUpState = rememberSignUpState()
 
@@ -75,74 +78,114 @@ fun SignUpScreen(
     Scaffold(snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
     }) { paddingValues ->
-        Column(
+        Box(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .consumeWindowInsets(paddingValues)
+                .consumeWindowInsets(paddingValues),
         ) {
-            Image(
-                modifier = Modifier.size(50.dp),
-                imageVector = ImageVector.vectorResource(id = R.drawable.ic_placeholder),
-                contentDescription = ""
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            OutlinedTextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(5.dp),
-                value = signUpState.name,
-                onValueChange = {
-                    signUpState.name = it
-                },
-                label = {
-                    Text(text = "Name")
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            )
-
-            OutlinedTextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(5.dp),
-                value = signUpState.email,
-                onValueChange = {
-                    signUpState.email = it
-                },
-                label = {
-                    Text(text = "Email")
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            )
-
-            OutlinedTextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(5.dp),
-                value = signUpState.password,
-                onValueChange = {
-                    signUpState.password = it
-                },
-                label = {
-                    Text(text = "Password")
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            )
-
-            Button(onClick = {
-                if (signUpState.validateFields()) {
-                    onSignUp(signUpState.name, signUpState.email, signUpState.password)
-                } else {
-                    scope.launch { snackbarHostState.showSnackbar(message = "We cannot process your request!") }
+            when (signUpUiState) {
+                SignUpUiState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-            }) {
-                Text(text = "Sign Up")
+
+                is SignUpUiState.Success -> onSignUpSuccess()
+
+                null -> {
+                    SignUp(modifier = modifier,
+                           signUpState = signUpState,
+                           onSignUp = onSignUp,
+                           onSignUpError = {
+                               scope.launch { snackbarHostState.showSnackbar(message = "We cannot process your request!") }
+                           })
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun SignUp(
+    modifier: Modifier,
+    signUpState: SignUpState,
+    onSignUp: (name: String, email: String, password: String) -> Unit,
+    onSignUpError: () -> Unit,
+) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(80.dp)
+                .align(Alignment.CenterHorizontally),
+            imageVector = Icons.Default.Book,
+            contentDescription = ""
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+            value = signUpState.name,
+            onValueChange = {
+                signUpState.name = it
+            },
+            label = {
+                Text(text = "Name")
+            },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next, keyboardType = KeyboardType.Text
+            ),
+        )
+
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+            value = signUpState.email,
+            onValueChange = {
+                signUpState.email = it
+            },
+            label = {
+                Text(text = "Email")
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next, keyboardType = KeyboardType.Email
+            ),
+        )
+
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+            value = signUpState.password,
+            onValueChange = {
+                signUpState.password = it
+            },
+            label = {
+                Text(text = "Password")
+            },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next, keyboardType = KeyboardType.Password
+            ),
+            visualTransformation = PasswordVisualTransformation()
+        )
+
+        Button(modifier = Modifier
+            .align(Alignment.End)
+            .padding(5.dp), onClick = {
+            if (signUpState.validateFields()) {
+                onSignUp(signUpState.name, signUpState.email, signUpState.password)
+            } else {
+                onSignUpError()
+            }
+        }) {
+            Text(text = "Sign Up")
         }
     }
 }

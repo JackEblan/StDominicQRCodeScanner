@@ -13,9 +13,9 @@ import javax.inject.Inject
 @HiltViewModel
 class SignUpViewModel @Inject constructor(private val emailPasswordAuthenticationRepository: EmailPasswordAuthenticationRepository) :
     ViewModel() {
-    private val _signUpResult = MutableStateFlow<Boolean?>(null)
+    private val _signUpUiState = MutableStateFlow<SignUpUiState?>(null)
 
-    val signUpResult = _signUpResult.asStateFlow()
+    val signUpUiState = _signUpUiState.asStateFlow()
 
     private val _signUpErrorMessage = MutableStateFlow<String?>(null)
 
@@ -23,13 +23,20 @@ class SignUpViewModel @Inject constructor(private val emailPasswordAuthenticatio
 
     fun createUserWithEmailAndPassword(name: String, email: String, password: String) {
         viewModelScope.launch {
+            _signUpUiState.update {
+                SignUpUiState.Loading
+            }
             emailPasswordAuthenticationRepository.createUserWithEmailAndPassword(
                 name = name, email = email, password = password
             ).onSuccess { result ->
-                _signUpResult.update {
-                    result
+                _signUpUiState.update {
+                    SignUpUiState.Success(isSignedUp = result)
                 }
             }.onFailure { t ->
+                _signUpUiState.update {
+                    null
+                }
+
                 _signUpErrorMessage.update {
                     t.message
                 }

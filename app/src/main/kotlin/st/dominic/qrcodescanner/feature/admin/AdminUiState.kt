@@ -6,4 +6,6 @@ sealed interface AdminUiState {
     data class Success(val book: Book?) : AdminUiState
 
     data object Loading : AdminUiState
+
+    data object Returned : AdminUiState
 }

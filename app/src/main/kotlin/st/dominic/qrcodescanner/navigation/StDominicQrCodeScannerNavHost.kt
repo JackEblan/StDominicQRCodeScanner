@@ -58,7 +58,7 @@ fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
 
         signInScreen(
             onSignInSuccess = navController::navigateUp,
-            onCreateAccount = navController::navigateToSignUp
+            onSignUp = navController::navigateToSignUp
         )
 
         signUpScreen(onSignUpSuccess = navController::navigateUp)

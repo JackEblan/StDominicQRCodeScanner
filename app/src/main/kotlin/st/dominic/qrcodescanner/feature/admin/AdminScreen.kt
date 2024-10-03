@@ -12,9 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -24,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,18 +45,13 @@ fun AdminRoute(
     viewModel: AdminViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
 ) {
-    val isReturn = viewModel.isReturned.collectAsStateWithLifecycle().value
-
-    val book = viewModel.book.collectAsStateWithLifecycle().value
-
-    LaunchedEffect(key1 = isReturn) {
-        if (isReturn == true) {
-            onNavigateUp()
-        }
-    }
+    val adminUiState = viewModel.adminUiState.collectAsStateWithLifecycle().value
 
     AdminScreen(
-        modifier = modifier, book = book, onReturnBook = viewModel::returnBook
+        modifier = modifier,
+        adminUiState = adminUiState,
+        onReturnBook = viewModel::returnBook,
+        onNavigateUp = onNavigateUp,
     )
 }
 
@@ -63,8 +60,9 @@ fun AdminRoute(
 fun AdminScreen(
     modifier: Modifier = Modifier,
     scrollState: ScrollState = rememberScrollState(),
-    book: Book?,
+    adminUiState: AdminUiState?,
     onReturnBook: () -> Unit,
+    onNavigateUp: () -> Unit
 ) {
     val topAppBarScrollBehavior = enterAlwaysScrollBehavior()
 
@@ -83,8 +81,8 @@ fun AdminScreen(
             scrollBehavior = topAppBarScrollBehavior,
         )
     }, floatingActionButton = {
-        ExtendedFloatingActionButton(onClick = onReturnBook) {
-            Text(text = "Return")
+        FloatingActionButton(onClick = onReturnBook) {
+            Icon(imageVector = Icons.Default.Book, contentDescription = "")
         }
 
     }, snackbarHost = {
@@ -93,15 +91,23 @@ fun AdminScreen(
         Box(
             modifier = modifier.fillMaxSize(),
         ) {
-            if (book != null) {
-                SuccessState(
-                    topAppBarScrollBehavior = topAppBarScrollBehavior,
-                    scrollState = scrollState,
-                    paddingValues = paddingValues,
-                    book = book,
-                )
-            } else {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            when (adminUiState) {
+                AdminUiState.Loading, null -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+
+                is AdminUiState.Success -> {
+                    if (adminUiState.book != null) {
+                        SuccessState(
+                            topAppBarScrollBehavior = topAppBarScrollBehavior,
+                            scrollState = scrollState,
+                            paddingValues = paddingValues,
+                            book = adminUiState.book,
+                        )
+                    }
+                }
+
+                AdminUiState.Returned -> onNavigateUp()
             }
         }
     }

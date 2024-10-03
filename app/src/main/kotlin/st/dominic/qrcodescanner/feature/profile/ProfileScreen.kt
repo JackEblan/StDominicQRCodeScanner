@@ -1,29 +1,29 @@
 package st.dominic.qrcodescanner.feature.profile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import st.dominic.qrcodescanner.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import st.dominic.qrcodescanner.core.model.AuthCurrentUser
 
 @Composable
@@ -32,8 +32,10 @@ fun ProfileRoute(
     viewModel: ProfileViewModel = hiltViewModel(),
     onSignIn: () -> Unit,
 ) {
+    val profileUiState = viewModel.profileUiState.collectAsStateWithLifecycle().value
+
     ProfileScreen(modifier = modifier,
-                  authCurrentUser = viewModel.authCurrentUser,
+                  profileUiState = profileUiState,
                   onSignIn = onSignIn,
                   onSignOut = {
                       viewModel.signOut()
@@ -44,68 +46,84 @@ fun ProfileRoute(
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
-    scrollState: ScrollState = rememberScrollState(),
-    authCurrentUser: AuthCurrentUser?,
+    profileUiState: ProfileUiState?,
     onSignIn: () -> Unit,
     onSignOut: () -> Unit,
 ) {
-    Column(
-        modifier = modifier
-            .verticalScroll(scrollState)
-            .fillMaxSize(),
+    Box(
+        modifier = modifier.fillMaxSize(),
     ) {
-        Image(
-            modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .align(Alignment.CenterHorizontally),
-            bitmap = ImageBitmap.imageResource(R.drawable.st_domini_college),
-            contentDescription = ""
-        )
+        when (profileUiState) {
+            ProfileUiState.Loading, null -> {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-        ) {
-            if (authCurrentUser != null) {
-                ProfileDetails(authCurrentUser = authCurrentUser, onSignOut = onSignOut)
-            } else {
-                SignInMessage(onSignIn = onSignIn)
+            is ProfileUiState.Success -> {
+                if (profileUiState.authCurrentUser != null) {
+                    Profile(
+                        modifier = modifier,
+                        authCurrentUser = profileUiState.authCurrentUser,
+                        onSignOut = onSignOut
+                    )
+                } else {
+                    SignIn(modifier = modifier, onSignIn = onSignIn)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun SignInMessage(onSignIn: () -> Unit) {
-    Text(
-        text = "You are currently not signed in!", style = MaterialTheme.typography.headlineSmall
-    )
+private fun SignIn(
+    modifier: Modifier = Modifier, onSignIn: () -> Unit
+) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            modifier = Modifier.size(50.dp),
+            imageVector = Icons.Default.Book,
+            contentDescription = ""
+        )
 
-    Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-    Button(onClick = onSignIn) {
-        Text(text = "Sign In")
+        Text(
+            text = "You are currently not signed in!", style = MaterialTheme.typography.titleLarge
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(onClick = onSignIn) {
+            Text(text = "Sign In")
+        }
     }
 }
 
 @Composable
-private fun ProfileDetails(authCurrentUser: AuthCurrentUser, onSignOut: () -> Unit) {
-    Text(text = "Welcome User!", style = MaterialTheme.typography.headlineSmall)
+private fun Profile(
+    modifier: Modifier = Modifier,
+    scrollState: ScrollState = rememberScrollState(),
+    authCurrentUser: AuthCurrentUser,
+    onSignOut: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .verticalScroll(scrollState)
+            .fillMaxSize()
+            .padding(10.dp),
+    ) {
+        ProfileText(title = "Name", subtitle = authCurrentUser.displayName)
 
-    Spacer(modifier = Modifier.height(20.dp))
+        ProfileText(title = "User ID", subtitle = authCurrentUser.uid)
 
-    ProfileText(title = "Name", subtitle = authCurrentUser.displayName)
+        ProfileText(title = "Email", subtitle = authCurrentUser.email)
 
-    ProfileText(title = "User ID", subtitle = authCurrentUser.uid)
-
-    ProfileText(title = "Email", subtitle = authCurrentUser.email)
-
-    Button(onClick = onSignOut) {
-        Text(text = "Sign Out")
+        Button(onClick = onSignOut) {
+            Text(text = "Sign Out")
+        }
     }
 }
 

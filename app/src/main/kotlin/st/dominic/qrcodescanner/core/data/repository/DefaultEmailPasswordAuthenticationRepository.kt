@@ -22,7 +22,7 @@ class DefaultEmailPasswordAuthenticationRepository @Inject constructor(private v
         )
     }
 
-    override fun getCurrentUser(): AuthCurrentUser? {
+    override suspend fun getCurrentUser(): Result<AuthCurrentUser?> {
         return emailPasswordAuthentication.getCurrentUser()
     }
 

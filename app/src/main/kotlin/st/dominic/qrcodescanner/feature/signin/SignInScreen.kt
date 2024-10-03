@@ -1,7 +1,9 @@
 package st.dominic.qrcodescanner.feature.signin
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -20,46 +27,44 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import st.dominic.qrcodescanner.R
 
 @Composable
 fun SignInRoute(
     modifier: Modifier = Modifier, viewModel: SignInViewModel = hiltViewModel(),
     onSignInSuccess: () -> Unit,
-    onCreateAccount: () -> Unit,
+    onSignUp: () -> Unit,
 ) {
-    val signInResult = viewModel.signInResult.collectAsStateWithLifecycle().value
+    val signInUiState = viewModel.signInUiState.collectAsStateWithLifecycle().value
 
     val signInErrorMessage = viewModel.signInErrorMessage.collectAsStateWithLifecycle().value
 
-    LaunchedEffect(key1 = signInResult) {
-        if (signInResult == true) {
-            onSignInSuccess()
-        }
-    }
-
     SignInScreen(
         modifier = modifier,
+        signInUiState = signInUiState,
         signInErrorMessage = signInErrorMessage,
-        onLogin = viewModel::signInWithEmailAndPassword,
-        onCreateAccount = onCreateAccount
+        onSignIn = viewModel::signInWithEmailAndPassword,
+        onSignUp = onSignUp,
+        onSignInSuccess = onSignInSuccess
     )
 }
 
 @Composable
 fun SignInScreen(
     modifier: Modifier = Modifier,
+    signInUiState: SignInUiState?,
     signInErrorMessage: String?,
-    onLogin: (email: String, password: String) -> Unit,
-    onCreateAccount: () -> Unit,
+    onSignIn: (email: String, password: String) -> Unit,
+    onSignUp: () -> Unit,
+    onSignInSuccess: () -> Unit,
 ) {
     val signInState = rememberSignInState()
 
@@ -78,62 +83,107 @@ fun SignInScreen(
     Scaffold(snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
     }) { paddingValues ->
-        Column(
+        Box(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .consumeWindowInsets(paddingValues)
+                .consumeWindowInsets(paddingValues),
         ) {
-            Image(
-                modifier = Modifier.size(50.dp),
-                imageVector = ImageVector.vectorResource(id = R.drawable.ic_placeholder),
-                contentDescription = ""
-            )
+            when (signInUiState) {
+                SignInUiState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
 
-            Spacer(modifier = Modifier.height(10.dp))
+                is SignInUiState.Success -> onSignInSuccess()
 
-            OutlinedTextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(5.dp),
-                value = signInState.email,
-                onValueChange = {
-                    signInState.email = it
-                },
-                label = {
-                    Text(text = "Email")
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            )
+                null -> {
+                    SignIn(modifier = modifier,
+                           signInState = signInState,
+                           onSignUp = onSignUp,
+                           onSignIn = onSignIn,
+                           onSignInError = {
+                               scope.launch { snackbarHostState.showSnackbar(message = "We cannot process your request!") }
+                           })
+                }
+            }
+        }
+    }
+}
 
-            OutlinedTextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(5.dp),
-                value = signInState.password,
-                onValueChange = {
-                    signInState.password = it
-                },
-                label = {
-                    Text(text = "Password")
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            )
+@Composable
+private fun SignIn(
+    modifier: Modifier,
+    signInState: SignInState,
+    onSignUp: () -> Unit,
+    onSignIn: (email: String, password: String) -> Unit,
+    onSignInError: () -> Unit,
+) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(80.dp)
+                .align(Alignment.CenterHorizontally),
+            imageVector = Icons.Default.Book,
+            contentDescription = ""
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+            value = signInState.email,
+            onValueChange = {
+                signInState.email = it
+            },
+            label = {
+                Text(text = "Email")
+            },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next, keyboardType = KeyboardType.Email
+            ),
+        )
+
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+            value = signInState.password,
+            onValueChange = {
+                signInState.password = it
+            },
+            label = {
+                Text(text = "Password")
+            },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next, keyboardType = KeyboardType.Email
+            ),
+            visualTransformation = PasswordVisualTransformation()
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            OutlinedButton(onClick = onSignUp) {
+                Text(text = "Sign Up")
+            }
 
             Button(onClick = {
                 if (signInState.validateFields()) {
-                    onLogin(signInState.email, signInState.password)
+                    onSignIn(signInState.email, signInState.password)
                 } else {
-                    scope.launch { snackbarHostState.showSnackbar(message = "We cannot process your request!") }
+                    onSignInError()
                 }
             }) {
                 Text(text = "Login")
-            }
-
-            Button(onClick = onCreateAccount) {
-                Text(text = "Create Account")
             }
         }
     }
