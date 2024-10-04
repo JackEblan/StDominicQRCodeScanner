@@ -1,4 +1,4 @@
-package st.dominic.qrcodescanner.core.scanner
+package st.dominic.qrcodescanner.core.scanner.module
 
 import android.content.Context
 import com.google.android.gms.common.moduleinstall.ModuleInstall
@@ -31,7 +31,6 @@ object GmsBarcodeScannerModule {
     @Provides
     @Singleton
     fun moduleInstallClient(@ApplicationContext context: Context) = ModuleInstall.getClient(context)
-
 
     @Provides
     @Singleton

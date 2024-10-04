@@ -16,8 +16,8 @@ fun NavController.navigateToBookScreen() {
     }
 }
 
-fun NavGraphBuilder.bookScreen(onBookClick: (String) -> Unit) {
+fun NavGraphBuilder.bookScreen() {
     composable<BookRouteData> {
-        BookRoute(onBookClick = onBookClick)
+        BookRoute()
     }
 }

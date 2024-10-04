@@ -4,6 +4,7 @@ import com.google.android.gms.common.moduleinstall.ModuleInstallClient
 import com.google.android.gms.common.moduleinstall.ModuleInstallRequest
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 import kotlinx.coroutines.suspendCancellableCoroutine
+import st.dominic.qrcodescanner.core.scanner.module.ModuleInstallProgressListener
 import javax.inject.Inject
 import kotlin.coroutines.resume
 

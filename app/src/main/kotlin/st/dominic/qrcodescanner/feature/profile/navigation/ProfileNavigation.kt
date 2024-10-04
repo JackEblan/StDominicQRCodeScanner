@@ -18,10 +18,12 @@ fun NavController.navigateToProfileScreen() {
 
 fun NavGraphBuilder.profileScreen(
     onSignIn: () -> Unit,
+    onManagement: () -> Unit,
 ) {
     composable<ProfileRouteData> {
         ProfileRoute(
             onSignIn = onSignIn,
+            onManagement = onManagement,
         )
     }
 }

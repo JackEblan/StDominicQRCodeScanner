@@ -1,4 +1,4 @@
-package st.dominic.qrcodescanner.feature.admin
+package st.dominic.qrcodescanner.feature.returnbook
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -13,41 +13,41 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import st.dominic.qrcodescanner.core.data.repository.BookRepository
 import st.dominic.qrcodescanner.core.model.BookStatus
-import st.dominic.qrcodescanner.feature.admin.navigation.AdminRouteData
+import st.dominic.qrcodescanner.feature.returnbook.navigation.ReturnBookRouteData
 import javax.inject.Inject
 
 @HiltViewModel
-class AdminViewModel @Inject constructor(
+class ReturnBookViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle, private val bookRepository: BookRepository
 ) : ViewModel() {
-    private val adminRouteData = savedStateHandle.toRoute<AdminRouteData>()
+    private val returnBookRouteData = savedStateHandle.toRoute<ReturnBookRouteData>()
 
-    private val _adminUiState = MutableStateFlow<AdminUiState?>(null)
+    private val _returnBookUiState = MutableStateFlow<ReturnBookUiState?>(null)
 
-    val adminUiState = _adminUiState.onStart { getBook() }.stateIn(
+    val adminUiState = _returnBookUiState.onStart { getBook() }.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = null
     )
 
     fun returnBook() {
         viewModelScope.launch {
-            _adminUiState.update {
-                AdminUiState.Loading
+            _returnBookUiState.update {
+                ReturnBookUiState.Loading
             }
 
             bookRepository.updateBookStatus(
-                id = adminRouteData.id, bookStatus = BookStatus.Returned
+                id = returnBookRouteData.id, bookStatus = BookStatus.Returned
             )
 
-            _adminUiState.update {
-                AdminUiState.Returned
+            _returnBookUiState.update {
+                ReturnBookUiState.Returned
             }
         }
     }
 
     private fun getBook() {
         viewModelScope.launch {
-            _adminUiState.update {
-                AdminUiState.Success(book = bookRepository.getBook(id = adminRouteData.id))
+            _returnBookUiState.update {
+                ReturnBookUiState.Success(book = bookRepository.getBook(id = returnBookRouteData.id))
             }
         }
     }

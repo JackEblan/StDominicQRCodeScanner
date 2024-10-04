@@ -13,7 +13,7 @@ import javax.inject.Inject
 class DefaultBookRepository @Inject constructor(
     private val bookDataSource: BookDataSource, private val storageDataSource: StorageDataSource
 ) : BookRepository {
-    override fun getBorrowedBooksByStudentId(studentId: String): Flow<List<Book>> {
+    override suspend fun getBorrowedBooksByStudentId(studentId: String): List<Book> {
         return bookDataSource.getBorrowedBooksDocumentsByStudentId(studentId = studentId)
     }
 

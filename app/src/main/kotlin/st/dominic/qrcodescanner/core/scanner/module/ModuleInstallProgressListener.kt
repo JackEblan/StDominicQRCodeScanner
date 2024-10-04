@@ -1,4 +1,4 @@
-package st.dominic.qrcodescanner.core.scanner
+package st.dominic.qrcodescanner.core.scanner.module
 
 import com.google.android.gms.common.moduleinstall.InstallStatusListener
 import com.google.android.gms.common.moduleinstall.ModuleInstallClient

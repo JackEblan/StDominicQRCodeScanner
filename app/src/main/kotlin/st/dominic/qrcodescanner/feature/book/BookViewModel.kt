@@ -3,60 +3,33 @@ package st.dominic.qrcodescanner.feature.book
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import st.dominic.qrcodescanner.core.data.repository.AdminRepository
-import st.dominic.qrcodescanner.core.data.repository.BookRepository
-import st.dominic.qrcodescanner.core.data.repository.EmailPasswordAuthenticationRepository
+import st.dominic.qrcodescanner.core.domain.GetBooksUseCase
 import javax.inject.Inject
 
 @HiltViewModel
 class BookViewModel @Inject constructor(
-    bookRepository: BookRepository,
-    private val emailPasswordAuthenticationRepository: EmailPasswordAuthenticationRepository,
-    private val adminRepository: AdminRepository,
+    private val getBooksUseCase: GetBooksUseCase,
 ) : ViewModel() {
-    private val _isAdmin = MutableStateFlow<Boolean?>(null)
+    private val _bookUiState = MutableStateFlow<BookUiState?>(null)
 
-    val isAdmin = _isAdmin.asStateFlow()
-
-    private val studentId get() = emailPasswordAuthenticationRepository.getCurrentUser()?.uid
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val bookUiState = _isAdmin.onStart { checkAdmin() }.filterNotNull().flatMapLatest { isAdmin ->
-        if (isAdmin) {
-            bookRepository.getBorrowedBooks()
-        } else if (studentId != null) {
-            bookRepository.getBorrowedBooksByStudentId(studentId = studentId!!)
-        } else {
-            flowOf(emptyList())
-        }
-    }.map { books ->
-        if (studentId != null) {
-            BookUiState.Success(books = books)
-        } else {
-            BookUiState.Failed
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = BookUiState.Loading
+    val bookUiState = _bookUiState.onStart { getBooks() }.stateIn(
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = null
     )
 
-    private fun checkAdmin() {
+    private fun getBooks() {
         viewModelScope.launch {
-            _isAdmin.update {
-                studentId != null && adminRepository.isAdmin(id = studentId!!)
+            _bookUiState.update {
+                BookUiState.Loading
+            }
+
+            _bookUiState.update {
+                BookUiState.Success(books = getBooksUseCase())
             }
         }
     }

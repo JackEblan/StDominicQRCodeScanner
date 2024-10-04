@@ -1,9 +1,10 @@
-package st.dominic.qrcodescanner.feature.book
+package st.dominic.qrcodescanner.feature.management
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,13 +16,18 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,38 +36,62 @@ import st.dominic.qrcodescanner.core.model.Book
 import st.dominic.qrcodescanner.core.model.BookStatus
 
 @Composable
-fun BookRoute(
-    modifier: Modifier = Modifier, bookViewModel: BookViewModel = hiltViewModel(),
+fun ManagementRoute(
+    modifier: Modifier = Modifier, viewModel: ManagementViewModel = hiltViewModel(),
+    onBookClick: (id: String) -> Unit,
 ) {
-    val bookUiState = bookViewModel.bookUiState.collectAsStateWithLifecycle().value
+    val managementUiState = viewModel.managementUiState.collectAsStateWithLifecycle().value
 
-    BookScreen(
+    ManagementScreen(
         modifier = modifier,
-        bookUiState = bookUiState,
+        managementUiState = managementUiState,
+        onBookClick = onBookClick,
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookScreen(
+fun ManagementScreen(
     modifier: Modifier,
-    bookUiState: BookUiState?,
+    managementUiState: ManagementUiState,
+    onBookClick: (id: String) -> Unit,
 ) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        when (bookUiState) {
-            BookUiState.Loading, null -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
+    val topAppBarScrollBehavior = enterAlwaysScrollBehavior()
 
-            is BookUiState.Success -> {
-                if (bookUiState.books.isNotEmpty()) {
-                    SuccessState(
-                        bookUiState = bookUiState,
-                    )
-                } else {
-                    EmptyState()
+    Scaffold(topBar = {
+        LargeTopAppBar(
+            title = {
+                Text(
+                    text = "Management",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            },
+            scrollBehavior = topAppBarScrollBehavior,
+        )
+    }) { paddingValues ->
+        Box(
+            modifier = modifier
+                .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
+                .fillMaxSize()
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues),
+        ) {
+            when (managementUiState) {
+                ManagementUiState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
+                is ManagementUiState.Success -> {
+                    if (managementUiState.books.isNotEmpty()) {
+                        SuccessState(
+                            managementUiState = managementUiState, onBookClick = onBookClick
+                        )
+                    } else {
+                        EmptyState()
+                    }
+                }
+
+                ManagementUiState.Failed -> EmptyState()
             }
         }
     }
@@ -70,15 +100,16 @@ fun BookScreen(
 @Composable
 private fun SuccessState(
     modifier: Modifier = Modifier,
-    bookUiState: BookUiState.Success,
+    managementUiState: ManagementUiState.Success,
+    onBookClick: (id: String) -> Unit,
 ) {
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(300.dp),
         modifier = modifier.fillMaxSize(),
     ) {
-        items(bookUiState.books) { book ->
+        items(managementUiState.books) { book ->
             BookItem(
-                book = book,
+                book = book, onBookClick = onBookClick
             )
         }
     }
@@ -106,7 +137,7 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Text(text = "Please sign in an account or borrow a book first")
+        Text(text = "We are not busy!")
     }
 }
 
@@ -114,11 +145,17 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 private fun BookItem(
     modifier: Modifier = Modifier,
     book: Book,
+    onBookClick: (id: String) -> Unit,
 ) {
     OutlinedCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(10.dp),
+        onClick = {
+            if (book.bookStatus == BookStatus.Borrowed) {
+                onBookClick(book.id)
+            }
+        },
     ) {
         ShimmerImage(
             modifier = Modifier
@@ -145,6 +182,10 @@ private fun BookItem(
                     title = "Date Returned", subtitle = book.dateReturned ?: "Invalid date"
                 )
             }
+
+            BookText(
+                title = "Student Name", subtitle = book.studentName
+            )
 
             BookText(title = "Book Status", subtitle = book.bookStatus.name)
         }

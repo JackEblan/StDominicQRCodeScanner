@@ -6,6 +6,4 @@ sealed interface BookUiState {
     data class Success(val books: List<Book>) : BookUiState
 
     data object Loading : BookUiState
-
-    data object Failed : BookUiState
 }

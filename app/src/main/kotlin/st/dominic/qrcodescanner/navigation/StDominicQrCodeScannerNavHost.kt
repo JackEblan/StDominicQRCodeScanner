@@ -6,18 +6,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import st.dominic.qrcodescanner.feature.admin.navigation.adminScreen
-import st.dominic.qrcodescanner.feature.admin.navigation.navigateToAdminScreen
 import st.dominic.qrcodescanner.feature.book.navigation.BookRouteData
 import st.dominic.qrcodescanner.feature.book.navigation.bookScreen
 import st.dominic.qrcodescanner.feature.book.navigation.navigateToBookScreen
-import st.dominic.qrcodescanner.feature.borrow.navigation.borrowScreen
-import st.dominic.qrcodescanner.feature.borrow.navigation.navigateToBorrowScreen
+import st.dominic.qrcodescanner.feature.borrowbook.navigation.borrowBookScreen
+import st.dominic.qrcodescanner.feature.borrowbook.navigation.navigateToBorrowBookScreen
 import st.dominic.qrcodescanner.feature.home.navigation.HomeRouteData
 import st.dominic.qrcodescanner.feature.home.navigation.homeScreen
+import st.dominic.qrcodescanner.feature.management.navigation.managementScreen
+import st.dominic.qrcodescanner.feature.management.navigation.navigateToManagementScreen
 import st.dominic.qrcodescanner.feature.profile.navigation.navigateToProfileScreen
 import st.dominic.qrcodescanner.feature.profile.navigation.profileScreen
-import st.dominic.qrcodescanner.feature.signin.navigation.navigateToSignIn
+import st.dominic.qrcodescanner.feature.returnbook.navigation.navigateToReturnBookScreen
+import st.dominic.qrcodescanner.feature.returnbook.navigation.returnBookScreen
+import st.dominic.qrcodescanner.feature.signin.navigation.navigateToSignInScreen
 import st.dominic.qrcodescanner.feature.signin.navigation.signInScreen
 import st.dominic.qrcodescanner.feature.signup.navigation.navigateToSignUp
 import st.dominic.qrcodescanner.feature.signup.navigation.signUpScreen
@@ -46,15 +48,18 @@ fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
                     TopLevelDestination.PROFILE -> homeNavHostController.navigateToProfileScreen()
                 }
             },
-            onFloatingActionButtonClick = navController::navigateToBorrowScreen,
+            onFloatingActionButtonClick = navController::navigateToBorrowBookScreen,
             builder = {
-                bookScreen(onBookClick = navController::navigateToAdminScreen)
+                bookScreen()
 
-                profileScreen(onSignIn = navController::navigateToSignIn)
+                profileScreen(
+                    onSignIn = navController::navigateToSignInScreen,
+                    onManagement = navController::navigateToManagementScreen
+                )
             },
         )
 
-        borrowScreen(onNavigateUp = navController::navigateUp)
+        borrowBookScreen(onNavigateUp = navController::navigateUp)
 
         signInScreen(
             onSignInSuccess = navController::navigateUp,
@@ -63,6 +68,8 @@ fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
 
         signUpScreen(onSignUpSuccess = navController::navigateUp)
 
-        adminScreen(onNavigateUp = navController::navigateUp)
+        returnBookScreen(onNavigateUp = navController::navigateUp)
+
+        managementScreen(onBookClick = navController::navigateToReturnBookScreen)
     }
 }

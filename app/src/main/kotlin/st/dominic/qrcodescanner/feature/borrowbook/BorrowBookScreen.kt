@@ -1,4 +1,4 @@
-package st.dominic.qrcodescanner.feature.borrow
+package st.dominic.qrcodescanner.feature.borrowbook
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -60,9 +60,9 @@ import st.dominic.qrcodescanner.core.model.BorrowBookResult
 import st.dominic.qrcodescanner.core.model.LocalBook
 
 @Composable
-fun BorrowRoute(
+fun BorrowBookRoute(
     modifier: Modifier = Modifier,
-    viewModel: BorrowViewModel = hiltViewModel(),
+    viewModel: BorrowBookViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
 ) {
     val addBookResultState = viewModel.borrowBookResultState.collectAsStateWithLifecycle().value
@@ -73,7 +73,7 @@ fun BorrowRoute(
 
     val moduleInstallProgress = viewModel.moduleInstallProgress.collectAsStateWithLifecycle().value
 
-    BorrowScreen(
+    BorrowBookScreen(
         modifier = modifier,
         borrowBookResultState = addBookResultState,
         qrCodeResult = qrCodeResultState,
@@ -87,7 +87,7 @@ fun BorrowRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BorrowScreen(
+fun BorrowBookScreen(
     modifier: Modifier = Modifier, scrollState: ScrollState = rememberScrollState(),
     borrowBookResultState: BorrowBookResult?,
     qrCodeResult: String?,

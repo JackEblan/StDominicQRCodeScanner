@@ -1,4 +1,4 @@
-package st.dominic.qrcodescanner.feature.borrow
+package st.dominic.qrcodescanner.feature.borrowbook
 
 import android.net.Uri
 import androidx.compose.runtime.Composable

@@ -1,4 +1,4 @@
-package st.dominic.qrcodescanner.feature.borrow
+package st.dominic.qrcodescanner.feature.borrowbook
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,7 +16,7 @@ import st.dominic.qrcodescanner.core.model.LocalBook
 import javax.inject.Inject
 
 @HiltViewModel
-class BorrowViewModel @Inject constructor(
+class BorrowBookViewModel @Inject constructor(
     private val borrowBookUseCase: BorrowBookUseCase,
     private val qrCodeScannerRepository: QrCodeScannerRepository
 ) : ViewModel() {

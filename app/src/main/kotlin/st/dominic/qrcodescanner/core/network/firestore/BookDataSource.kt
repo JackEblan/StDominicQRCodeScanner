@@ -5,7 +5,7 @@ import st.dominic.qrcodescanner.core.model.Book
 import st.dominic.qrcodescanner.core.model.BookStatus
 
 interface BookDataSource {
-    fun getBorrowedBooksDocumentsByStudentId(studentId: String): Flow<List<Book>>
+    suspend fun getBorrowedBooksDocumentsByStudentId(studentId: String): List<Book>
 
     fun getBorrowedBooksDocuments(): Flow<List<Book>>
 

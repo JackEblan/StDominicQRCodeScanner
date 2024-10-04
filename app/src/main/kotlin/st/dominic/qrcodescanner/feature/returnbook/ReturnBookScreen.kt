@@ -1,4 +1,4 @@
-package st.dominic.qrcodescanner.feature.admin
+package st.dominic.qrcodescanner.feature.returnbook
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
@@ -40,16 +40,16 @@ import st.dominic.qrcodescanner.core.designsystem.component.ShimmerImage
 import st.dominic.qrcodescanner.core.model.Book
 
 @Composable
-fun AdminRoute(
+fun ReturnBookRoute(
     modifier: Modifier = Modifier,
-    viewModel: AdminViewModel = hiltViewModel(),
+    viewModel: ReturnBookViewModel = hiltViewModel(),
     onNavigateUp: () -> Unit,
 ) {
     val adminUiState = viewModel.adminUiState.collectAsStateWithLifecycle().value
 
-    AdminScreen(
+    ReturnBookScreen(
         modifier = modifier,
-        adminUiState = adminUiState,
+        returnBookUiState = adminUiState,
         onReturnBook = viewModel::returnBook,
         onNavigateUp = onNavigateUp,
     )
@@ -57,10 +57,10 @@ fun AdminRoute(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminScreen(
+fun ReturnBookScreen(
     modifier: Modifier = Modifier,
     scrollState: ScrollState = rememberScrollState(),
-    adminUiState: AdminUiState?,
+    returnBookUiState: ReturnBookUiState?,
     onReturnBook: () -> Unit,
     onNavigateUp: () -> Unit
 ) {
@@ -91,23 +91,23 @@ fun AdminScreen(
         Box(
             modifier = modifier.fillMaxSize(),
         ) {
-            when (adminUiState) {
-                AdminUiState.Loading, null -> {
+            when (returnBookUiState) {
+                ReturnBookUiState.Loading, null -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 
-                is AdminUiState.Success -> {
-                    if (adminUiState.book != null) {
+                is ReturnBookUiState.Success -> {
+                    if (returnBookUiState.book != null) {
                         SuccessState(
                             topAppBarScrollBehavior = topAppBarScrollBehavior,
                             scrollState = scrollState,
                             paddingValues = paddingValues,
-                            book = adminUiState.book,
+                            book = returnBookUiState.book,
                         )
                     }
                 }
 
-                AdminUiState.Returned -> onNavigateUp()
+                ReturnBookUiState.Returned -> onNavigateUp()
             }
         }
     }

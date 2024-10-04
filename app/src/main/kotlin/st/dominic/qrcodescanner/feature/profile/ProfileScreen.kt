@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import st.dominic.qrcodescanner.core.model.AuthCurrentUser
 
 @Composable
@@ -28,10 +29,15 @@ fun ProfileRoute(
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = hiltViewModel(),
     onSignIn: () -> Unit,
+    onManagement: () -> Unit,
 ) {
+    val isAdmin = viewModel.isAdmin.collectAsStateWithLifecycle().value
+
     ProfileScreen(modifier = modifier,
                   authCurrentUser = viewModel.authCurrentUser,
+                  isAdmin = isAdmin,
                   onSignIn = onSignIn,
+                  onManagement = onManagement,
                   onSignOut = {
                       viewModel.signOut()
                       onSignIn()
@@ -42,12 +48,18 @@ fun ProfileRoute(
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     authCurrentUser: AuthCurrentUser?,
+    isAdmin: Boolean?,
     onSignIn: () -> Unit,
+    onManagement: () -> Unit,
     onSignOut: () -> Unit,
 ) {
     if (authCurrentUser != null) {
         Profile(
-            modifier = modifier, authCurrentUser = authCurrentUser, onSignOut = onSignOut
+            modifier = modifier,
+            authCurrentUser = authCurrentUser,
+            isAdmin = isAdmin,
+            onManagement = onManagement,
+            onSignOut = onSignOut
         )
     } else {
         SignIn(modifier = modifier, onSignIn = onSignIn)
@@ -88,6 +100,8 @@ private fun Profile(
     modifier: Modifier = Modifier,
     scrollState: ScrollState = rememberScrollState(),
     authCurrentUser: AuthCurrentUser,
+    isAdmin: Boolean?,
+    onManagement: () -> Unit,
     onSignOut: () -> Unit
 ) {
     Column(
@@ -101,6 +115,14 @@ private fun Profile(
         ProfileText(title = "User ID", subtitle = authCurrentUser.uid)
 
         ProfileText(title = "Email", subtitle = authCurrentUser.email)
+
+        if (isAdmin == true) {
+            Button(onClick = onManagement) {
+                Text(text = "Management")
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+        }
 
         Button(onClick = onSignOut) {
             Text(text = "Sign Out")
