@@ -30,20 +30,24 @@ class BookViewModel @Inject constructor(
 
     val isAdmin = _isAdmin.asStateFlow()
 
+    private val studentId get() = emailPasswordAuthenticationRepository.getCurrentUser()?.uid
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val bookUiState = _isAdmin.onStart { checkAdmin() }.filterNotNull().flatMapLatest { isAdmin ->
-        val studentId = emailPasswordAuthenticationRepository.getCurrentUser().getOrNull()?.uid
-
         if (isAdmin) {
-            return@flatMapLatest bookRepository.getBorrowedBooks()
-        }
-
-        if (studentId != null) {
-            bookRepository.getBorrowedBooksByStudentId(studentId = studentId)
+            bookRepository.getBorrowedBooks()
+        } else if (studentId != null) {
+            bookRepository.getBorrowedBooksByStudentId(studentId = studentId!!)
         } else {
             flowOf(emptyList())
         }
-    }.map(BookUiState::Success).stateIn(
+    }.map { books ->
+        if (studentId != null) {
+            BookUiState.Success(books = books)
+        } else {
+            BookUiState.Failed
+        }
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = BookUiState.Loading
@@ -51,10 +55,8 @@ class BookViewModel @Inject constructor(
 
     private fun checkAdmin() {
         viewModelScope.launch {
-            val studentId = emailPasswordAuthenticationRepository.getCurrentUser().getOrNull()?.uid
-
             _isAdmin.update {
-                studentId != null && adminRepository.isAdmin(id = studentId)
+                studentId != null && adminRepository.isAdmin(id = studentId!!)
             }
         }
     }

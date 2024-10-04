@@ -70,6 +70,8 @@ fun BookScreen(
                     EmptyState()
                 }
             }
+
+            BookUiState.Failed -> EmptyState()
         }
     }
 }
@@ -159,6 +161,12 @@ private fun BookItem(
             if (book.bookStatus == BookStatus.Returned) {
                 BookText(
                     title = "Date Returned", subtitle = book.dateReturned ?: "Invalid date"
+                )
+            }
+
+            if (isAdmin == true) {
+                BookText(
+                    title = "Student Name", subtitle = book.studentName
                 )
             }
 

@@ -18,10 +18,9 @@ class BorrowBookUseCase @Inject constructor(
     suspend operator fun invoke(localBook: LocalBook): Flow<BorrowBookResult> {
         val bookId = bookRepository.generateBookId()
 
-        val currentUser =
-            emailPasswordAuthenticationRepository.getCurrentUser().getOrNull() ?: return flowOf(
-                BorrowBookResult(notSignedIn = true)
-            )
+        val currentUser = emailPasswordAuthenticationRepository.getCurrentUser() ?: return flowOf(
+            BorrowBookResult(notSignedIn = true)
+        )
 
         return bookRepository.uploadBookPhoto(
             file = localBook.imageUri, fileName = bookId

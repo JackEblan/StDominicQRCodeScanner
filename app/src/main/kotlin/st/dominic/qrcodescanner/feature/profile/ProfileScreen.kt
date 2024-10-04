@@ -2,7 +2,6 @@ package st.dominic.qrcodescanner.feature.profile
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +13,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import st.dominic.qrcodescanner.core.model.AuthCurrentUser
 
 @Composable
@@ -32,10 +29,8 @@ fun ProfileRoute(
     viewModel: ProfileViewModel = hiltViewModel(),
     onSignIn: () -> Unit,
 ) {
-    val profileUiState = viewModel.profileUiState.collectAsStateWithLifecycle().value
-
     ProfileScreen(modifier = modifier,
-                  profileUiState = profileUiState,
+                  authCurrentUser = viewModel.authCurrentUser,
                   onSignIn = onSignIn,
                   onSignOut = {
                       viewModel.signOut()
@@ -46,30 +41,16 @@ fun ProfileRoute(
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
-    profileUiState: ProfileUiState?,
+    authCurrentUser: AuthCurrentUser?,
     onSignIn: () -> Unit,
     onSignOut: () -> Unit,
 ) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        when (profileUiState) {
-            ProfileUiState.Loading, null -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
-
-            is ProfileUiState.Success -> {
-                if (profileUiState.authCurrentUser != null) {
-                    Profile(
-                        modifier = modifier,
-                        authCurrentUser = profileUiState.authCurrentUser,
-                        onSignOut = onSignOut
-                    )
-                } else {
-                    SignIn(modifier = modifier, onSignIn = onSignIn)
-                }
-            }
-        }
+    if (authCurrentUser != null) {
+        Profile(
+            modifier = modifier, authCurrentUser = authCurrentUser, onSignOut = onSignOut
+        )
+    } else {
+        SignIn(modifier = modifier, onSignIn = onSignIn)
     }
 }
 

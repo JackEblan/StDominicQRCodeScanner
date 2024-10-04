@@ -23,7 +23,6 @@ class ModuleInstallProgressListener @Inject constructor(private val moduleInstal
             val progress = (it.bytesDownloaded * 100 / it.totalBytesToDownload)
 
             _moduleInstallProgress.tryEmit(progress.toFloat())
-            println(progress)
         }
 
         if (isTerminateState(update.installState)) {
