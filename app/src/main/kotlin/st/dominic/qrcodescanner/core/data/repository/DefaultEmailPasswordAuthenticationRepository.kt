@@ -22,6 +22,10 @@ class DefaultEmailPasswordAuthenticationRepository @Inject constructor(private v
         )
     }
 
+    override suspend fun sendEmailVerification(): Result<Boolean> {
+        return emailPasswordAuthentication.sendEmailVerification()
+    }
+
     override fun getCurrentUser(): AuthCurrentUser? {
         return emailPasswordAuthentication.getCurrentUser()
     }

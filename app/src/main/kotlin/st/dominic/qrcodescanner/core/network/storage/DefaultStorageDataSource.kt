@@ -2,57 +2,57 @@ package st.dominic.qrcodescanner.core.network.storage
 
 import android.net.Uri
 import com.google.firebase.storage.FirebaseStorage
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.flowOn
-import st.dominic.qrcodescanner.core.common.Dispatcher
-import st.dominic.qrcodescanner.core.common.StDominicQrCodeScannerDispatchers
-import st.dominic.qrcodescanner.core.model.UploadFileResult
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
+import kotlin.coroutines.resume
 
 class DefaultStorageDataSource @Inject constructor(
-    private val storage: FirebaseStorage,
-    @Dispatcher(StDominicQrCodeScannerDispatchers.IO) private val ioDispatcher: CoroutineDispatcher
+    private val storage: FirebaseStorage
 ) : StorageDataSource {
+    private val _progress =
+        MutableSharedFlow<Float?>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    override fun uploadFile(
+    override val progress = _progress.asSharedFlow()
+
+    override suspend fun uploadFile(
         file: Uri, ref: String, fileName: String
-    ): Flow<UploadFileResult> {
-        return callbackFlow {
+    ): Result<String> {
+        return runCatching {
             val photosRef = storage.reference.child(ref).child(fileName)
+
             val uploadTask = photosRef.putFile(file)
 
-            uploadTask.addOnProgressListener { snapshot ->
-                val progress = (100.0 * snapshot.bytesTransferred) / snapshot.totalByteCount
+            suspendCancellableCoroutine { continuation ->
+                uploadTask.addOnProgressListener { snapshot ->
+                    _progress.tryEmit(snapshot.bytesTransferred * 100F / snapshot.totalByteCount)
 
-                trySend(UploadFileResult(progress = progress.toFloat()))
-            }.continueWithTask { task ->
-                if (!task.isSuccessful) {
-                    task.exception?.let {
-                        throw it
+                }.continueWithTask { task ->
+                    if (!task.isSuccessful) {
+                        task.exception?.let {
+                            throw it
+                        }
+                    }
+
+                    photosRef.downloadUrl
+                }.addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val downloadUri = task.result.toString()
+
+                        continuation.resume(downloadUri)
+                    } else {
+                        task.exception?.let {
+                            throw it
+                        }
                     }
                 }
-                photosRef.downloadUrl
-            }.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val downloadUri = task.result
-                    trySend(UploadFileResult(downloadLink = downloadUri.toString()))
-                } else {
-                    task.exception?.let {
-                        trySend(
-                            UploadFileResult(exception = it)
-                        )
-                    }
+
+                continuation.invokeOnCancellation {
+                    uploadTask.cancel()
                 }
             }
-
-            awaitClose {
-                uploadTask.cancel()
-            }
-
-        }.conflate().flowOn(ioDispatcher)
+        }
     }
 }

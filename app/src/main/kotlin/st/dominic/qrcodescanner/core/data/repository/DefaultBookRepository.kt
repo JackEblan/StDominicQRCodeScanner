@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 import st.dominic.qrcodescanner.core.data.repository.BookRepository.Companion.BOOK_REFERENCE
 import st.dominic.qrcodescanner.core.model.Book
 import st.dominic.qrcodescanner.core.model.BookStatus
-import st.dominic.qrcodescanner.core.model.UploadFileResult
 import st.dominic.qrcodescanner.core.network.firestore.BookDataSource
 import st.dominic.qrcodescanner.core.network.storage.StorageDataSource
 import javax.inject.Inject
@@ -13,6 +12,8 @@ import javax.inject.Inject
 class DefaultBookRepository @Inject constructor(
     private val bookDataSource: BookDataSource, private val storageDataSource: StorageDataSource
 ) : BookRepository {
+    override val progress get() = storageDataSource.progress
+
     override suspend fun getBorrowedBooksByStudentId(studentId: String): List<Book> {
         return bookDataSource.getBorrowedBooksDocumentsByStudentId(studentId = studentId)
     }
@@ -33,7 +34,7 @@ class DefaultBookRepository @Inject constructor(
         bookDataSource.deleteBook(id = id)
     }
 
-    override fun uploadBookPhoto(file: Uri, fileName: String): Flow<UploadFileResult> {
+    override suspend fun uploadBookPhoto(file: Uri, fileName: String): Result<String> {
         return storageDataSource.uploadFile(file = file, ref = BOOK_REFERENCE, fileName = fileName)
     }
 

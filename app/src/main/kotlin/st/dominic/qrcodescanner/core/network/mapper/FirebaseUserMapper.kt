@@ -9,6 +9,7 @@ fun toAuthCurrentUser(firebaseUser: FirebaseUser?): AuthCurrentUser? {
             uid = firebaseUser.uid,
             displayName = firebaseUser.displayName.toString(),
             email = firebaseUser.email.toString(),
+            isEmailVerified = firebaseUser.isEmailVerified,
         )
     } else {
         null

@@ -7,6 +7,8 @@ interface EmailPasswordAuthentication {
 
     suspend fun signInWithEmailAndPassword(email: String, password: String): Result<Boolean>
 
+    suspend fun sendEmailVerification(): Result<Boolean>
+
     fun getCurrentUser(): AuthCurrentUser?
 
     fun signOut()

@@ -1,28 +1,23 @@
 package st.dominic.qrcodescanner.feature.signin
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -47,23 +42,38 @@ fun SignInRoute(
 
     val signInErrorMessage = viewModel.signInErrorMessage.collectAsStateWithLifecycle().value
 
+    val emailVerificationResult =
+        viewModel.emailVerificationResult.collectAsStateWithLifecycle().value
+
+    val emailVerificationErrorMessage =
+        viewModel.emailVerificationErrorMessage.collectAsStateWithLifecycle().value
+
     SignInScreen(
         modifier = modifier,
         signInUiState = signInUiState,
         signInErrorMessage = signInErrorMessage,
+        emailVerificationResult = emailVerificationResult,
+        emailVerificationErrorMessage = emailVerificationErrorMessage,
         onSignIn = viewModel::signInWithEmailAndPassword,
         onSignUp = onSignUp,
-        onSignInSuccess = onSignInSuccess
+        onVerifyEmail = viewModel::verifyEmail,
+        onResetPassword = {},
+        onSignInSuccess = onSignInSuccess,
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignInScreen(
     modifier: Modifier = Modifier,
     signInUiState: SignInUiState?,
     signInErrorMessage: String?,
+    emailVerificationResult: Boolean?,
+    emailVerificationErrorMessage: String?,
     onSignIn: (email: String, password: String) -> Unit,
     onSignUp: () -> Unit,
+    onVerifyEmail: () -> Unit,
+    onResetPassword: () -> Unit,
     onSignInSuccess: () -> Unit,
 ) {
     val signInState = rememberSignInState()
@@ -80,8 +90,24 @@ fun SignInScreen(
         }
     }
 
+    LaunchedEffect(key1 = emailVerificationResult) {
+        if (emailVerificationResult != null) {
+            snackbarHostState.showSnackbar(message = "Email verification link has been sent to your email!")
+        }
+    }
+
+    LaunchedEffect(key1 = emailVerificationErrorMessage) {
+        if (emailVerificationErrorMessage != null) {
+            snackbarHostState.showSnackbar(message = emailVerificationErrorMessage)
+        }
+    }
+
     Scaffold(snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
+    }, topBar = {
+        TopAppBar(title = {
+            Text(text = "Sign In")
+        })
     }) { paddingValues ->
         Box(
             modifier = modifier
@@ -100,9 +126,11 @@ fun SignInScreen(
                     SignIn(modifier = modifier,
                            signInState = signInState,
                            onSignUp = onSignUp,
+                           onVerifyEmail = onVerifyEmail,
+                           onResetPassword = onResetPassword,
                            onSignIn = onSignIn,
-                           onSignInError = {
-                               scope.launch { snackbarHostState.showSnackbar(message = "We cannot process your request!") }
+                           onShowSnackbar = { message ->
+                               scope.launch { snackbarHostState.showSnackbar(message = message) }
                            })
                 }
             }
@@ -115,28 +143,18 @@ private fun SignIn(
     modifier: Modifier,
     signInState: SignInState,
     onSignUp: () -> Unit,
+    onVerifyEmail: () -> Unit,
+    onResetPassword: () -> Unit,
     onSignIn: (email: String, password: String) -> Unit,
-    onSignInError: () -> Unit,
+    onShowSnackbar: (String) -> Unit,
 ) {
     Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 5.dp),
     ) {
-        Icon(
-            modifier = Modifier
-                .size(80.dp)
-                .align(Alignment.CenterHorizontally),
-            imageVector = Icons.Default.Book,
-            contentDescription = ""
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
         OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
+            modifier = Modifier.fillMaxWidth(),
             value = signInState.email,
             onValueChange = {
                 signInState.email = it
@@ -149,42 +167,56 @@ private fun SignIn(
             ),
         )
 
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
-            value = signInState.password,
-            onValueChange = {
-                signInState.password = it
-            },
-            label = {
-                Text(text = "Password")
-            },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Next, keyboardType = KeyboardType.Email
-            ),
-            visualTransformation = PasswordVisualTransformation()
+        Spacer(modifier = Modifier.height(5.dp))
+
+        OutlinedTextField(modifier = Modifier.fillMaxWidth(),
+                          value = signInState.password,
+                          onValueChange = {
+                              signInState.password = it
+                          },
+                          label = {
+                              Text(text = "Password")
+                          },
+                          keyboardOptions = KeyboardOptions(
+                              imeAction = ImeAction.Next, keyboardType = KeyboardType.Email
+                          ),
+                          visualTransformation = PasswordVisualTransformation()
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            OutlinedButton(onClick = onSignUp) {
-                Text(text = "Sign Up")
-            }
+        Spacer(modifier = Modifier.height(5.dp))
 
-            Button(onClick = {
-                if (signInState.validateFields()) {
-                    onSignIn(signInState.email, signInState.password)
-                } else {
-                    onSignInError()
-                }
-            }) {
-                Text(text = "Login")
+        Button(onClick = {
+            if (signInState.validateFields()) {
+                onSignIn(signInState.email, signInState.password)
+            } else {
+                onShowSnackbar("We cannot process your request!")
             }
+        }) {
+            Text(text = "Login")
+        }
+
+        Button(onClick = onSignUp) {
+            Text(text = "Sign Up")
+        }
+
+        Button(onClick = {
+            if (signInState.email.isBlank()) {
+                onShowSnackbar("Email is empty!")
+            } else {
+                onVerifyEmail()
+            }
+        }) {
+            Text(text = "Verify Email")
+        }
+
+        Button(onClick = {
+            if (signInState.email.isBlank()) {
+                onShowSnackbar("Email is empty!")
+            } else {
+                onResetPassword()
+            }
+        }) {
+            Text(text = "Reset Password")
         }
     }
 }

@@ -21,6 +21,28 @@ class SignInViewModel @Inject constructor(private val emailPasswordAuthenticatio
 
     val signInErrorMessage = _signInErrorMessage.asStateFlow()
 
+    private val _emailVerificationResult = MutableStateFlow<Boolean?>(null)
+
+    val emailVerificationResult = _emailVerificationResult.asStateFlow()
+
+    private val _emailVerificationErrorMessage = MutableStateFlow<String?>(null)
+
+    val emailVerificationErrorMessage = _emailVerificationErrorMessage.asStateFlow()
+
+    fun verifyEmail() {
+        viewModelScope.launch {
+            emailPasswordAuthenticationRepository.sendEmailVerification().onSuccess { success ->
+                _emailVerificationResult.update {
+                    success
+                }
+            }.onFailure { t ->
+                _emailVerificationErrorMessage.update {
+                    t.localizedMessage
+                }
+            }
+        }
+    }
+
     fun signInWithEmailAndPassword(email: String, password: String) {
         viewModelScope.launch {
             _signInUiState.update {

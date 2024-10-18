@@ -1,6 +1,5 @@
 package st.dominic.qrcodescanner.feature.signup
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,18 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -53,6 +50,7 @@ fun SignUpRoute(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(
     modifier: Modifier = Modifier,
@@ -77,6 +75,10 @@ fun SignUpScreen(
 
     Scaffold(snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
+    }, topBar = {
+        TopAppBar(title = {
+            Text(text = "Sign Up")
+        })
     }) { paddingValues ->
         Box(
             modifier = modifier
@@ -112,24 +114,12 @@ private fun SignUp(
     onSignUpError: () -> Unit,
 ) {
     Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 5.dp),
     ) {
-        Icon(
-            modifier = Modifier
-                .size(80.dp)
-                .align(Alignment.CenterHorizontally),
-            imageVector = Icons.Default.Book,
-            contentDescription = ""
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
         OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
+            modifier = Modifier.fillMaxWidth(),
             value = signUpState.name,
             onValueChange = {
                 signUpState.name = it
@@ -142,10 +132,10 @@ private fun SignUp(
             ),
         )
 
+        Spacer(modifier = Modifier.height(5.dp))
+
         OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
+            modifier = Modifier.fillMaxWidth(),
             value = signUpState.email,
             onValueChange = {
                 signUpState.email = it
@@ -159,26 +149,25 @@ private fun SignUp(
             ),
         )
 
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
-            value = signUpState.password,
-            onValueChange = {
-                signUpState.password = it
-            },
-            label = {
-                Text(text = "Password")
-            },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Next, keyboardType = KeyboardType.Password
-            ),
-            visualTransformation = PasswordVisualTransformation()
+        Spacer(modifier = Modifier.height(5.dp))
+
+        OutlinedTextField(modifier = Modifier.fillMaxWidth(),
+                          value = signUpState.password,
+                          onValueChange = {
+                              signUpState.password = it
+                          },
+                          label = {
+                              Text(text = "Password")
+                          },
+                          keyboardOptions = KeyboardOptions(
+                              imeAction = ImeAction.Next, keyboardType = KeyboardType.Password
+                          ),
+                          visualTransformation = PasswordVisualTransformation()
         )
 
-        Button(modifier = Modifier
-            .align(Alignment.End)
-            .padding(5.dp), onClick = {
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Button(onClick = {
             if (signUpState.validateFields()) {
                 onSignUp(signUpState.name, signUpState.email, signUpState.password)
             } else {

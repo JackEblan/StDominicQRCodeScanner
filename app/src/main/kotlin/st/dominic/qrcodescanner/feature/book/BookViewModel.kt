@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import st.dominic.qrcodescanner.core.domain.GetBooksUseCase
+import st.dominic.qrcodescanner.core.model.GetBooksResult
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,8 +29,24 @@ class BookViewModel @Inject constructor(
                 BookUiState.Loading
             }
 
-            _bookUiState.update {
-                BookUiState.Success(books = getBooksUseCase())
+            when (val getBooksResult = getBooksUseCase()) {
+                GetBooksResult.NotEmailVerified -> {
+                    _bookUiState.update {
+                        BookUiState.NotEmailVerified
+                    }
+                }
+
+                GetBooksResult.NotSignedIn -> {
+                    _bookUiState.update {
+                        BookUiState.NotSignedIn
+                    }
+                }
+
+                is GetBooksResult.Success -> {
+                    _bookUiState.update {
+                        BookUiState.Success(books = getBooksResult.books)
+                    }
+                }
             }
         }
     }

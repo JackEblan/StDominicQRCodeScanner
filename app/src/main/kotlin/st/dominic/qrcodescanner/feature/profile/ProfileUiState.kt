@@ -6,4 +6,10 @@ sealed interface ProfileUiState {
     data class Success(val authCurrentUser: AuthCurrentUser?): ProfileUiState
 
     data object Loading: ProfileUiState
+
+    data object NotSignedIn: ProfileUiState
+
+    data object NotEmailVerified: ProfileUiState
+
+    data object Admin: ProfileUiState
 }

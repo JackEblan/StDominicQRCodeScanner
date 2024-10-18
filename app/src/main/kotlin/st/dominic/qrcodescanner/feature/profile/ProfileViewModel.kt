@@ -9,20 +9,19 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import st.dominic.qrcodescanner.core.data.repository.AdminRepository
 import st.dominic.qrcodescanner.core.data.repository.EmailPasswordAuthenticationRepository
+import st.dominic.qrcodescanner.core.domain.GetProfileUseCase
+import st.dominic.qrcodescanner.core.model.GetProfileResult
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val emailPasswordAuthenticationRepository: EmailPasswordAuthenticationRepository,
-    private val adminRepository: AdminRepository,
+    private val getProfileUseCase: GetProfileUseCase,
 ) : ViewModel() {
-    val authCurrentUser get() = emailPasswordAuthenticationRepository.getCurrentUser()
+    private val _profile = MutableStateFlow<GetProfileResult?>(null)
 
-    private val _isAdmin = MutableStateFlow<Boolean?>(null)
-
-    val isAdmin = _isAdmin.onStart { checkAdmin() }.stateIn(
+    val profile = _profile.onStart { getProfile() }.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = null
     )
 
@@ -30,10 +29,10 @@ class ProfileViewModel @Inject constructor(
         emailPasswordAuthenticationRepository.signOut()
     }
 
-    private fun checkAdmin() {
+    private fun getProfile() {
         viewModelScope.launch {
-            _isAdmin.update {
-                authCurrentUser?.uid != null && adminRepository.isAdmin(id = authCurrentUser?.uid!!)
+            _profile.update {
+                getProfileUseCase()
             }
         }
     }

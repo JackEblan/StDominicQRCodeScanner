@@ -60,8 +60,20 @@ fun BookScreen(
                         bookUiState = bookUiState,
                     )
                 } else {
-                    EmptyState()
+                    EmptyState(title = "No books found!", subtitle = "Borrow your first book")
                 }
+            }
+
+            BookUiState.NotEmailVerified -> {
+                EmptyState(
+                    title = "Email not verified!", subtitle = "Please verify your email first!"
+                )
+            }
+
+            BookUiState.NotSignedIn -> {
+                EmptyState(
+                    title = "Sign in an account!", subtitle = "Please sign in an account first!"
+                )
             }
         }
     }
@@ -86,7 +98,7 @@ private fun SuccessState(
 }
 
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier) {
+private fun EmptyState(modifier: Modifier = Modifier, title: String, subtitle: String) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -102,11 +114,11 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Text(text = "No books found!", style = MaterialTheme.typography.titleLarge)
+        Text(text = title, style = MaterialTheme.typography.titleLarge)
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Text(text = "Please sign in an account or borrow a book first")
+        Text(text = subtitle)
     }
 }
 
