@@ -17,17 +17,17 @@ class SignInViewModel @Inject constructor(private val emailPasswordAuthenticatio
 
     val signInUiState = _signInUiState.asStateFlow()
 
-    private val _signInErrorMessage = MutableStateFlow<String?>(null)
+    private val _snackbar = MutableStateFlow<String?>(null)
 
-    val signInErrorMessage = _signInErrorMessage.asStateFlow()
+    val snackbar = _snackbar.asStateFlow()
 
     private val _emailVerificationResult = MutableStateFlow<Boolean?>(null)
 
     val emailVerificationResult = _emailVerificationResult.asStateFlow()
 
-    private val _emailVerificationErrorMessage = MutableStateFlow<String?>(null)
+    private val _sendPasswordResetEmailResult = MutableStateFlow<Boolean?>(null)
 
-    val emailVerificationErrorMessage = _emailVerificationErrorMessage.asStateFlow()
+    val sendPasswordResetEmailResult = _sendPasswordResetEmailResult.asStateFlow()
 
     fun verifyEmail() {
         viewModelScope.launch {
@@ -36,7 +36,7 @@ class SignInViewModel @Inject constructor(private val emailPasswordAuthenticatio
                     success
                 }
             }.onFailure { t ->
-                _emailVerificationErrorMessage.update {
+                _snackbar.update {
                     t.localizedMessage
                 }
             }
@@ -60,7 +60,23 @@ class SignInViewModel @Inject constructor(private val emailPasswordAuthenticatio
                     null
                 }
 
-                _signInErrorMessage.update {
+                _snackbar.update {
+                    t.message
+                }
+            }
+        }
+    }
+
+    fun sendPasswordResetEmail(email: String) {
+        viewModelScope.launch {
+            emailPasswordAuthenticationRepository.sendPasswordResetEmail(
+                email = email,
+            ).onSuccess { success ->
+                _sendPasswordResetEmailResult.update {
+                    success
+                }
+            }.onFailure { t ->
+                _snackbar.update {
                     t.message
                 }
             }

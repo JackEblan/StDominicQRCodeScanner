@@ -24,19 +24,19 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -45,12 +45,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import st.dominic.qrcodescanner.core.model.GetProfileResult
 import st.dominic.qrcodescanner.feature.home.navigation.HomeDestination
 import kotlin.reflect.KClass
 
 @Composable
 fun HomeRoute(
     modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel(),
     snackbarHostState: SnackbarHostState,
     navController: NavHostController = rememberNavController(),
     topLevelDestinations: List<HomeDestination>,
@@ -59,8 +61,11 @@ fun HomeRoute(
     onFloatingActionButtonClick: () -> Unit,
     builder: NavGraphBuilder.() -> Unit,
 ) {
+    val profile = viewModel.profile.collectAsStateWithLifecycle().value
+
     HomeScreen(
         modifier = modifier,
+        getProfileResult = profile,
         snackbarHostState = snackbarHostState,
         navController = navController,
         topLevelDestinations = topLevelDestinations,
@@ -75,6 +80,7 @@ fun HomeRoute(
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    getProfileResult: GetProfileResult?,
     snackbarHostState: SnackbarHostState,
     navController: NavHostController = rememberNavController(),
     topLevelDestinations: List<HomeDestination>,
@@ -83,8 +89,6 @@ fun HomeScreen(
     onFloatingActionButtonClick: () -> Unit,
     builder: NavGraphBuilder.() -> Unit,
 ) {
-    val topAppBarScrollBehavior = enterAlwaysScrollBehavior()
-
     val currentDestination = navController.currentBackStackEntryAsState().value?.destination
 
     val topBarTitleStringResource = topLevelDestinations.find { destination ->
@@ -112,25 +116,25 @@ fun HomeScreen(
         navigationSuiteColors = NavigationSuiteDefaults.colors(navigationBarContainerColor = MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Scaffold(topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         text = stringResource(id = topBarTitleStringResource),
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
-                scrollBehavior = topAppBarScrollBehavior,
             )
         }, snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }, floatingActionButton = {
-            FloatingActionButton(onClick = onFloatingActionButtonClick) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "")
+            if (getProfileResult?.isSignedIn == true) {
+                FloatingActionButton(onClick = onFloatingActionButtonClick) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "")
+                }
             }
         }) { paddingValues ->
             NavHost(
                 modifier = modifier
-                    .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
                     .padding(paddingValues)
                     .consumeWindowInsets(paddingValues),
                 navController = navController,

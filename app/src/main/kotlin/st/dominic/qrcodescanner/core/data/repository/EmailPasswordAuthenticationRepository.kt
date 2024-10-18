@@ -9,6 +9,8 @@ interface EmailPasswordAuthenticationRepository {
 
     suspend fun sendEmailVerification(): Result<Boolean>
 
+    suspend fun sendPasswordResetEmail(email: String): Result<Boolean>
+
     fun getCurrentUser(): AuthCurrentUser?
 
     fun signOut()

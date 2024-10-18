@@ -40,24 +40,24 @@ fun SignInRoute(
 ) {
     val signInUiState = viewModel.signInUiState.collectAsStateWithLifecycle().value
 
-    val signInErrorMessage = viewModel.signInErrorMessage.collectAsStateWithLifecycle().value
+    val snackbar = viewModel.snackbar.collectAsStateWithLifecycle().value
 
     val emailVerificationResult =
         viewModel.emailVerificationResult.collectAsStateWithLifecycle().value
 
-    val emailVerificationErrorMessage =
-        viewModel.emailVerificationErrorMessage.collectAsStateWithLifecycle().value
+    val sendPasswordResetEmailResult =
+        viewModel.sendPasswordResetEmailResult.collectAsStateWithLifecycle().value
 
     SignInScreen(
         modifier = modifier,
         signInUiState = signInUiState,
-        signInErrorMessage = signInErrorMessage,
+        snackbar = snackbar,
         emailVerificationResult = emailVerificationResult,
-        emailVerificationErrorMessage = emailVerificationErrorMessage,
+        sendPasswordResetEmailResult = sendPasswordResetEmailResult,
         onSignIn = viewModel::signInWithEmailAndPassword,
         onSignUp = onSignUp,
         onVerifyEmail = viewModel::verifyEmail,
-        onResetPassword = {},
+        onSendPasswordResetEmail = viewModel::sendPasswordResetEmail,
         onSignInSuccess = onSignInSuccess,
     )
 }
@@ -67,13 +67,13 @@ fun SignInRoute(
 fun SignInScreen(
     modifier: Modifier = Modifier,
     signInUiState: SignInUiState?,
-    signInErrorMessage: String?,
+    snackbar: String?,
     emailVerificationResult: Boolean?,
-    emailVerificationErrorMessage: String?,
+    sendPasswordResetEmailResult: Boolean?,
     onSignIn: (email: String, password: String) -> Unit,
     onSignUp: () -> Unit,
     onVerifyEmail: () -> Unit,
-    onResetPassword: () -> Unit,
+    onSendPasswordResetEmail: (email: String) -> Unit,
     onSignInSuccess: () -> Unit,
 ) {
     val signInState = rememberSignInState()
@@ -84,9 +84,9 @@ fun SignInScreen(
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = signInErrorMessage) {
-        if (signInErrorMessage != null) {
-            snackbarHostState.showSnackbar(message = signInErrorMessage)
+    LaunchedEffect(key1 = snackbar) {
+        if (snackbar != null) {
+            snackbarHostState.showSnackbar(message = snackbar)
         }
     }
 
@@ -96,9 +96,9 @@ fun SignInScreen(
         }
     }
 
-    LaunchedEffect(key1 = emailVerificationErrorMessage) {
-        if (emailVerificationErrorMessage != null) {
-            snackbarHostState.showSnackbar(message = emailVerificationErrorMessage)
+    LaunchedEffect(key1 = sendPasswordResetEmailResult) {
+        if (sendPasswordResetEmailResult != null) {
+            snackbarHostState.showSnackbar(message = "Password reset link has been sent to your email!")
         }
     }
 
@@ -127,7 +127,7 @@ fun SignInScreen(
                            signInState = signInState,
                            onSignUp = onSignUp,
                            onVerifyEmail = onVerifyEmail,
-                           onResetPassword = onResetPassword,
+                           onSendPasswordResetEmail = onSendPasswordResetEmail,
                            onSignIn = onSignIn,
                            onShowSnackbar = { message ->
                                scope.launch { snackbarHostState.showSnackbar(message = message) }
@@ -144,7 +144,7 @@ private fun SignIn(
     signInState: SignInState,
     onSignUp: () -> Unit,
     onVerifyEmail: () -> Unit,
-    onResetPassword: () -> Unit,
+    onSendPasswordResetEmail: (email: String) -> Unit,
     onSignIn: (email: String, password: String) -> Unit,
     onShowSnackbar: (String) -> Unit,
 ) {
@@ -201,7 +201,7 @@ private fun SignIn(
 
         Button(onClick = {
             if (signInState.email.isBlank()) {
-                onShowSnackbar("Email is empty!")
+                onShowSnackbar("We cannot process your request!")
             } else {
                 onVerifyEmail()
             }
@@ -211,9 +211,9 @@ private fun SignIn(
 
         Button(onClick = {
             if (signInState.email.isBlank()) {
-                onShowSnackbar("Email is empty!")
+                onShowSnackbar("We cannot process your request!")
             } else {
-                onResetPassword()
+                onSendPasswordResetEmail(signInState.email)
             }
         }) {
             Text(text = "Reset Password")

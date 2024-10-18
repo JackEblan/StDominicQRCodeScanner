@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.Surface
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 import st.dominic.qrcodescanner.core.designsystem.theme.StDominicQRCodeScannerTheme
@@ -20,7 +21,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             StDominicQRCodeScannerTheme {
-                StDominicQrCodeScannerNavHost()
+                Surface {
+                    StDominicQrCodeScannerNavHost()
+                }
             }
         }
     }

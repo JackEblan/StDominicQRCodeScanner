@@ -1,4 +1,4 @@
-package st.dominic.qrcodescanner.feature.profile
+package st.dominic.qrcodescanner.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,14 +9,12 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import st.dominic.qrcodescanner.core.data.repository.EmailPasswordAuthenticationRepository
 import st.dominic.qrcodescanner.core.domain.GetProfileUseCase
 import st.dominic.qrcodescanner.core.model.GetProfileResult
 import javax.inject.Inject
 
 @HiltViewModel
-class ProfileViewModel @Inject constructor(
-    private val emailPasswordAuthenticationRepository: EmailPasswordAuthenticationRepository,
+class HomeViewModel @Inject constructor(
     private val getProfileUseCase: GetProfileUseCase,
 ) : ViewModel() {
     private val _profile = MutableStateFlow<GetProfileResult?>(null)
@@ -24,10 +22,6 @@ class ProfileViewModel @Inject constructor(
     val profile = _profile.onStart { getProfile() }.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(), initialValue = null
     )
-
-    fun signOut() {
-        emailPasswordAuthenticationRepository.signOut()
-    }
 
     private fun getProfile() {
         viewModelScope.launch {
