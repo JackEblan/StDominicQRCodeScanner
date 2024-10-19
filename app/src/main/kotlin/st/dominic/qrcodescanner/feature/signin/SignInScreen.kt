@@ -35,30 +35,28 @@ import kotlinx.coroutines.launch
 @Composable
 fun SignInRoute(
     modifier: Modifier = Modifier, viewModel: SignInViewModel = hiltViewModel(),
-    onSignInSuccess: () -> Unit,
     onSignUp: () -> Unit,
+    onNavigateUp: () -> Unit,
 ) {
     val signInUiState = viewModel.signInUiState.collectAsStateWithLifecycle().value
 
     val snackbar = viewModel.snackbar.collectAsStateWithLifecycle().value
 
-    val emailVerificationResult =
-        viewModel.emailVerificationResult.collectAsStateWithLifecycle().value
-
     val sendPasswordResetEmailResult =
         viewModel.sendPasswordResetEmailResult.collectAsStateWithLifecycle().value
+
+    val navigateUp = viewModel.navigateUp.collectAsStateWithLifecycle().value
 
     SignInScreen(
         modifier = modifier,
         signInUiState = signInUiState,
         snackbar = snackbar,
-        emailVerificationResult = emailVerificationResult,
+        navigateUp = navigateUp,
         sendPasswordResetEmailResult = sendPasswordResetEmailResult,
         onSignIn = viewModel::signInWithEmailAndPassword,
         onSignUp = onSignUp,
-        onVerifyEmail = viewModel::verifyEmail,
         onSendPasswordResetEmail = viewModel::sendPasswordResetEmail,
-        onSignInSuccess = onSignInSuccess,
+        onNavigateUp = onNavigateUp,
     )
 }
 
@@ -66,15 +64,14 @@ fun SignInRoute(
 @Composable
 fun SignInScreen(
     modifier: Modifier = Modifier,
-    signInUiState: SignInUiState?,
+    signInUiState: SignInUiState,
     snackbar: String?,
-    emailVerificationResult: Boolean?,
+    navigateUp: Boolean?,
     sendPasswordResetEmailResult: Boolean?,
     onSignIn: (email: String, password: String) -> Unit,
     onSignUp: () -> Unit,
-    onVerifyEmail: () -> Unit,
     onSendPasswordResetEmail: (email: String) -> Unit,
-    onSignInSuccess: () -> Unit,
+    onNavigateUp: () -> Unit,
 ) {
     val signInState = rememberSignInState()
 
@@ -90,9 +87,9 @@ fun SignInScreen(
         }
     }
 
-    LaunchedEffect(key1 = emailVerificationResult) {
-        if (emailVerificationResult != null) {
-            snackbarHostState.showSnackbar(message = "Email verification link has been sent to your email!")
+    LaunchedEffect(key1 = navigateUp) {
+        if (navigateUp != null) {
+            onNavigateUp()
         }
     }
 
@@ -120,13 +117,10 @@ fun SignInScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 
-                is SignInUiState.Success -> onSignInSuccess()
-
-                null -> {
+                SignInUiState.SignIn -> {
                     SignIn(modifier = modifier,
                            signInState = signInState,
                            onSignUp = onSignUp,
-                           onVerifyEmail = onVerifyEmail,
                            onSendPasswordResetEmail = onSendPasswordResetEmail,
                            onSignIn = onSignIn,
                            onShowSnackbar = { message ->
@@ -143,7 +137,6 @@ private fun SignIn(
     modifier: Modifier,
     signInState: SignInState,
     onSignUp: () -> Unit,
-    onVerifyEmail: () -> Unit,
     onSendPasswordResetEmail: (email: String) -> Unit,
     onSignIn: (email: String, password: String) -> Unit,
     onShowSnackbar: (String) -> Unit,
@@ -197,16 +190,6 @@ private fun SignIn(
 
         Button(onClick = onSignUp) {
             Text(text = "Sign Up")
-        }
-
-        Button(onClick = {
-            if (signInState.email.isBlank()) {
-                onShowSnackbar("We cannot process your request!")
-            } else {
-                onVerifyEmail()
-            }
-        }) {
-            Text(text = "Verify Email")
         }
 
         Button(onClick = {

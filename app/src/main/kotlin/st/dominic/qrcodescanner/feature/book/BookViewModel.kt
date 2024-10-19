@@ -20,7 +20,7 @@ class BookViewModel @Inject constructor(
     private val _bookUiState = MutableStateFlow<BookUiState?>(null)
 
     val bookUiState = _bookUiState.onStart { getBooks() }.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = null
+        scope = viewModelScope, started = SharingStarted.WhileSubscribed(), initialValue = null
     )
 
     private fun getBooks() {

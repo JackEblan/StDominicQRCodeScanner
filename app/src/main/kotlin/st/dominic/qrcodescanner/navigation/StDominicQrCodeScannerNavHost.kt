@@ -3,9 +3,11 @@ package st.dominic.qrcodescanner.navigation
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import st.dominic.qrcodescanner.feature.book.navigation.BookRouteData
 import st.dominic.qrcodescanner.feature.book.navigation.bookScreen
 import st.dominic.qrcodescanner.feature.book.navigation.navigateToBookScreen
@@ -27,6 +29,8 @@ import st.dominic.qrcodescanner.feature.signup.navigation.signUpScreen
 @Composable
 fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
+
+    val scope = rememberCoroutineScope()
 
     val snackbarHostState = remember {
         SnackbarHostState()
@@ -52,20 +56,24 @@ fun StDominicQrCodeScannerNavHost(modifier: Modifier = Modifier) {
             builder = {
                 bookScreen()
 
-                profileScreen(
-                    onSignIn = navController::navigateToSignInScreen,
-                    onManagement = navController::navigateToManagementScreen
-                )
+                profileScreen(onSignIn = navController::navigateToSignInScreen,
+                              onManagement = navController::navigateToManagementScreen,
+                              onShowSnackBar = { message ->
+                                  scope.launch {
+                                      snackbarHostState.showSnackbar(message = message)
+                                  }
+                              })
             },
         )
 
         borrowBookScreen(onNavigateUp = navController::navigateUp)
 
         signInScreen(
-            onSignInSuccess = navController::navigateUp, onSignUp = navController::navigateToSignUp
+            onSignUp = navController::navigateToSignUp,
+            onNavigateUp = navController::navigateUp,
         )
 
-        signUpScreen(onSignUpSuccess = navController::navigateUp)
+        signUpScreen(onNavigateUp = navController::navigateUp)
 
         returnBookScreen(onNavigateUp = navController::navigateUp)
 

@@ -1,7 +1,7 @@
 package st.dominic.qrcodescanner.feature.signup
 
 sealed interface SignUpUiState {
-    data class Success(val isSignedUp: Boolean) : SignUpUiState
+    data object SignUp : SignUpUiState
 
     data object Loading : SignUpUiState
 }

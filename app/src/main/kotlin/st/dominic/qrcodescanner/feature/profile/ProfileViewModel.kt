@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -24,6 +25,35 @@ class ProfileViewModel @Inject constructor(
     val profileUiState = _profileUiState.onStart { getProfile() }.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(), initialValue = null
     )
+
+    private val _emailVerificationResult = MutableStateFlow<Boolean?>(null)
+
+    val emailVerificationResult = _emailVerificationResult.asStateFlow()
+
+    private val _snackbar = MutableStateFlow<String?>(null)
+
+    val snackbar = _snackbar.asStateFlow()
+
+    fun verifyEmail() {
+        viewModelScope.launch {
+            _profileUiState.update {
+                ProfileUiState.Loading
+            }
+
+            emailPasswordAuthenticationRepository.sendEmailVerification().onSuccess { success ->
+                _emailVerificationResult.update {
+                    success
+                }
+
+            }.onFailure { t ->
+                _snackbar.update {
+                    t.localizedMessage
+                }
+            }
+
+            getProfile()
+        }
+    }
 
     fun signOut() {
         emailPasswordAuthenticationRepository.signOut()

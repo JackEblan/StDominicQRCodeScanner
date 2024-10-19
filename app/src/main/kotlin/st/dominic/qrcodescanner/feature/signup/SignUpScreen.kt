@@ -35,18 +35,21 @@ import kotlinx.coroutines.launch
 @Composable
 fun SignUpRoute(
     modifier: Modifier = Modifier, viewModel: SignUpViewModel = hiltViewModel(),
-    onSignUpSuccess: () -> Unit,
+    onNavigateUp: () -> Unit,
 ) {
     val signUpUiState = viewModel.signUpUiState.collectAsStateWithLifecycle().value
 
-    val signUpErrorMessage = viewModel.signUpErrorMessage.collectAsStateWithLifecycle().value
+    val snackbar = viewModel.snackbar.collectAsStateWithLifecycle().value
+
+    val navigateUp = viewModel.navigateUp.collectAsStateWithLifecycle().value
 
     SignUpScreen(
         modifier = modifier,
         signUpUiState = signUpUiState,
-        signUpErrorMessage = signUpErrorMessage,
+        snackbar = snackbar,
+        navigateUp = navigateUp,
         onSignUp = viewModel::createUserWithEmailAndPassword,
-        onSignUpSuccess = onSignUpSuccess,
+        onNavigateUp = onNavigateUp,
     )
 }
 
@@ -54,10 +57,11 @@ fun SignUpRoute(
 @Composable
 fun SignUpScreen(
     modifier: Modifier = Modifier,
-    signUpUiState: SignUpUiState?,
-    signUpErrorMessage: String?,
+    signUpUiState: SignUpUiState,
+    snackbar: String?,
+    navigateUp: Boolean?,
     onSignUp: (name: String, email: String, password: String) -> Unit,
-    onSignUpSuccess: () -> Unit,
+    onNavigateUp: () -> Unit,
 ) {
     val signUpState = rememberSignUpState()
 
@@ -67,9 +71,15 @@ fun SignUpScreen(
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = signUpErrorMessage) {
-        if (signUpErrorMessage != null) {
-            snackbarHostState.showSnackbar(message = signUpErrorMessage)
+    LaunchedEffect(key1 = snackbar) {
+        if (snackbar != null) {
+            snackbarHostState.showSnackbar(message = snackbar)
+        }
+    }
+
+    LaunchedEffect(key1 = navigateUp) {
+        if (navigateUp != null) {
+            onNavigateUp()
         }
     }
 
@@ -91,9 +101,7 @@ fun SignUpScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 
-                is SignUpUiState.Success -> onSignUpSuccess()
-
-                null -> {
+                SignUpUiState.SignUp -> {
                     SignUp(modifier = modifier,
                            signUpState = signUpState,
                            onSignUp = onSignUp,

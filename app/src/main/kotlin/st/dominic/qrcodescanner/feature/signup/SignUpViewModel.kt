@@ -13,31 +13,37 @@ import javax.inject.Inject
 @HiltViewModel
 class SignUpViewModel @Inject constructor(private val emailPasswordAuthenticationRepository: EmailPasswordAuthenticationRepository) :
     ViewModel() {
-    private val _signUpUiState = MutableStateFlow<SignUpUiState?>(null)
+    private val _signUpUiState = MutableStateFlow<SignUpUiState>(SignUpUiState.SignUp)
 
     val signUpUiState = _signUpUiState.asStateFlow()
 
-    private val _signUpErrorMessage = MutableStateFlow<String?>(null)
+    private val _snackbar = MutableStateFlow<String?>(null)
 
-    val signUpErrorMessage = _signUpErrorMessage.asStateFlow()
+    val snackbar = _snackbar.asStateFlow()
+
+    private val _success = MutableStateFlow<Boolean?>(null)
+
+    val navigateUp = _success.asStateFlow()
 
     fun createUserWithEmailAndPassword(name: String, email: String, password: String) {
         viewModelScope.launch {
             _signUpUiState.update {
                 SignUpUiState.Loading
             }
+
             emailPasswordAuthenticationRepository.createUserWithEmailAndPassword(
                 name = name, email = email, password = password
-            ).onSuccess { result ->
-                _signUpUiState.update {
-                    SignUpUiState.Success(isSignedUp = result)
-                }
-            }.onFailure { t ->
-                _signUpUiState.update {
-                    null
+            ).onSuccess { success ->
+                _success.update {
+                    success
                 }
 
-                _signUpErrorMessage.update {
+            }.onFailure { t ->
+                _signUpUiState.update {
+                    SignUpUiState.SignUp
+                }
+
+                _snackbar.update {
                     t.message
                 }
             }

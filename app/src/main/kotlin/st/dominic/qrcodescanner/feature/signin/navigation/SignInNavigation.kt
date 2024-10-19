@@ -10,11 +10,12 @@ fun NavController.navigateToSignInScreen() {
 }
 
 fun NavGraphBuilder.signInScreen(
-    onSignInSuccess: () -> Unit, onSignUp: () -> Unit
+    onSignUp: () -> Unit,
+    onNavigateUp: () -> Unit,
 ) {
     composable<SignInRouteData> {
         SignInRoute(
-            onSignInSuccess = onSignInSuccess, onSignUp = onSignUp
+            onSignUp = onSignUp, onNavigateUp = onNavigateUp
         )
     }
 }

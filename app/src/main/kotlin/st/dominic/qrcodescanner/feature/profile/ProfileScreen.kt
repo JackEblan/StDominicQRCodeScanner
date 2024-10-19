@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -28,30 +29,59 @@ fun ProfileRoute(
     viewModel: ProfileViewModel = hiltViewModel(),
     onSignIn: () -> Unit,
     onManagement: () -> Unit,
+    onShowSnackBar: (String) -> Unit,
 ) {
     val profileUiState = viewModel.profileUiState.collectAsStateWithLifecycle().value
 
-    ProfileScreen(modifier = modifier,
-                  profileUiState = profileUiState,
-                  onSignIn = onSignIn,
-                  onManagement = onManagement,
-                  onSignOut = {
-                      viewModel.signOut()
-                      onSignIn()
-                  })
+    val snackbar = viewModel.snackbar.collectAsStateWithLifecycle().value
+
+    val emailVerificationResult =
+        viewModel.emailVerificationResult.collectAsStateWithLifecycle().value
+
+    ProfileScreen(
+        modifier = modifier,
+        profileUiState = profileUiState,
+        snackbar = snackbar,
+        emailVerificationResult = emailVerificationResult,
+        onSignIn = onSignIn,
+        onVerify = viewModel::verifyEmail,
+        onManagement = onManagement,
+        onSignOut = {
+            viewModel.signOut()
+            onSignIn()
+        },
+        onShowSnackBar = onShowSnackBar,
+    )
 }
 
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
     profileUiState: ProfileUiState?,
+    snackbar: String?,
+    emailVerificationResult: Boolean?,
     onSignIn: () -> Unit,
+    onVerify: () -> Unit,
     onManagement: () -> Unit,
     onSignOut: () -> Unit,
+    onShowSnackBar: (String) -> Unit,
 ) {
+
+    LaunchedEffect(key1 = snackbar) {
+        if (snackbar != null) {
+            onShowSnackBar(snackbar)
+        }
+    }
+
+    LaunchedEffect(key1 = emailVerificationResult) {
+        if (emailVerificationResult != null) {
+            onShowSnackBar("Email verification link has been sent to your email!")
+        }
+    }
+
     when (profileUiState) {
         ProfileUiState.EmailVerify -> {
-            EmailVerify(modifier = modifier, onSignOut = onSignOut)
+            EmailVerify(modifier = modifier, onVerify = onVerify, onSignOut = onSignOut)
         }
 
         ProfileUiState.Failed -> {
@@ -111,7 +141,7 @@ private fun SignIn(
 
 @Composable
 private fun EmailVerify(
-    modifier: Modifier = Modifier, onSignOut: () -> Unit,
+    modifier: Modifier = Modifier, onVerify: () -> Unit, onSignOut: () -> Unit
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
@@ -129,6 +159,12 @@ private fun EmailVerify(
         Text(
             text = "Please verify your email address", style = MaterialTheme.typography.titleLarge
         )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(onClick = onVerify) {
+            Text(text = "Verify Email")
+        }
 
         Spacer(modifier = Modifier.height(20.dp))
 

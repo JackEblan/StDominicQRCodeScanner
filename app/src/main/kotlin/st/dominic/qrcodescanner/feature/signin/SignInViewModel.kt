@@ -13,7 +13,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SignInViewModel @Inject constructor(private val emailPasswordAuthenticationRepository: EmailPasswordAuthenticationRepository) :
     ViewModel() {
-    private val _signInUiState = MutableStateFlow<SignInUiState?>(null)
+    private val _signInUiState = MutableStateFlow<SignInUiState>(SignInUiState.SignIn)
 
     val signInUiState = _signInUiState.asStateFlow()
 
@@ -21,27 +21,13 @@ class SignInViewModel @Inject constructor(private val emailPasswordAuthenticatio
 
     val snackbar = _snackbar.asStateFlow()
 
-    private val _emailVerificationResult = MutableStateFlow<Boolean?>(null)
-
-    val emailVerificationResult = _emailVerificationResult.asStateFlow()
-
     private val _sendPasswordResetEmailResult = MutableStateFlow<Boolean?>(null)
 
     val sendPasswordResetEmailResult = _sendPasswordResetEmailResult.asStateFlow()
 
-    fun verifyEmail() {
-        viewModelScope.launch {
-            emailPasswordAuthenticationRepository.sendEmailVerification().onSuccess { success ->
-                _emailVerificationResult.update {
-                    success
-                }
-            }.onFailure { t ->
-                _snackbar.update {
-                    t.localizedMessage
-                }
-            }
-        }
-    }
+    private val _navigateUp = MutableStateFlow<Boolean?>(null)
+
+    val navigateUp = _navigateUp.asStateFlow()
 
     fun signInWithEmailAndPassword(email: String, password: String) {
         viewModelScope.launch {
@@ -51,15 +37,12 @@ class SignInViewModel @Inject constructor(private val emailPasswordAuthenticatio
 
             emailPasswordAuthenticationRepository.signInWithEmailAndPassword(
                 email = email, password = password
-            ).onSuccess { result ->
-                _signInUiState.update {
-                    SignInUiState.Success(isSignedIn = result)
-                }
-            }.onFailure { t ->
-                _signInUiState.update {
-                    null
+            ).onSuccess { success ->
+                _navigateUp.update {
+                    success
                 }
 
+            }.onFailure { t ->
                 _snackbar.update {
                     t.message
                 }
@@ -69,16 +52,25 @@ class SignInViewModel @Inject constructor(private val emailPasswordAuthenticatio
 
     fun sendPasswordResetEmail(email: String) {
         viewModelScope.launch {
+            _signInUiState.update {
+                SignInUiState.Loading
+            }
+
             emailPasswordAuthenticationRepository.sendPasswordResetEmail(
                 email = email,
             ).onSuccess { success ->
                 _sendPasswordResetEmailResult.update {
                     success
                 }
+
             }.onFailure { t ->
                 _snackbar.update {
                     t.message
                 }
+            }
+
+            _signInUiState.update {
+                SignInUiState.SignIn
             }
         }
     }

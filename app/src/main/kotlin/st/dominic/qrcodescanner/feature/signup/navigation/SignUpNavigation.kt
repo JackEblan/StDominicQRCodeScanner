@@ -10,9 +10,9 @@ fun NavController.navigateToSignUp() {
 }
 
 fun NavGraphBuilder.signUpScreen(
-    onSignUpSuccess: () -> Unit
+    onNavigateUp: () -> Unit
 ) {
     composable<SignUpRouteData> {
-        SignUpRoute(onSignUpSuccess = onSignUpSuccess)
+        SignUpRoute(onNavigateUp = onNavigateUp)
     }
 }
