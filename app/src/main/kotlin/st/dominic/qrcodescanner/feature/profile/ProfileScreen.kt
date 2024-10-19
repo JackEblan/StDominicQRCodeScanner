@@ -50,26 +50,26 @@ fun ProfileScreen(
     onManagement: () -> Unit,
     onSignOut: () -> Unit,
 ) {
-    when {
-        getProfileResult == null -> {
-            Loading()
-        }
-
-        getProfileResult.isSignedIn == false -> {
-            SignIn(modifier = modifier, onSignIn = onSignIn)
-        }
-
-        getProfileResult.isEmailVerified == false -> {
-            VerifyEmail(modifier = modifier, onSignOut = onSignOut)
-        }
-
-        else -> {
+    when (getProfileResult) {
+        is GetProfileResult.Success -> {
             Profile(
                 modifier = modifier,
                 getProfileResult = getProfileResult,
                 onManagement = onManagement,
                 onSignOut = onSignOut
             )
+        }
+
+        GetProfileResult.Failed -> {
+            SignIn(modifier = modifier, onSignIn = onSignIn)
+        }
+
+        GetProfileResult.EmailVerify -> {
+            VerifyEmail(modifier = modifier, onSignOut = onSignOut)
+        }
+
+        null -> {
+            Loading()
         }
     }
 }
@@ -142,7 +142,7 @@ private fun VerifyEmail(
 @Composable
 private fun Profile(
     modifier: Modifier = Modifier,
-    getProfileResult: GetProfileResult,
+    getProfileResult: GetProfileResult.Success,
     onManagement: () -> Unit,
     onSignOut: () -> Unit
 ) {
@@ -151,13 +151,13 @@ private fun Profile(
             .fillMaxSize()
             .padding(10.dp),
     ) {
-        ProfileText(title = "Name", subtitle = getProfileResult.displayName!!)
+        ProfileText(title = "Name", subtitle = getProfileResult.authCurrentUser.displayName)
 
-        ProfileText(title = "User ID", subtitle = getProfileResult.uid!!)
+        ProfileText(title = "User ID", subtitle = getProfileResult.authCurrentUser.uid)
 
-        ProfileText(title = "Email", subtitle = getProfileResult.email!!)
+        ProfileText(title = "Email", subtitle = getProfileResult.authCurrentUser.email)
 
-        if (getProfileResult.isAdmin!!) {
+        if (getProfileResult.isAdmin) {
             Button(onClick = onManagement) {
                 Text(text = "Management")
             }

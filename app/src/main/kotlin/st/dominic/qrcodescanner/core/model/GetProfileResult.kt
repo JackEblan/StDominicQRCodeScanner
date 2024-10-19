@@ -1,10 +1,10 @@
 package st.dominic.qrcodescanner.core.model
 
-data class GetProfileResult(
-    val uid: String? = null,
-    val displayName: String? = null,
-    val email: String? = null,
-    val isSignedIn: Boolean? = null,
-    val isEmailVerified: Boolean? = null,
-    val isAdmin: Boolean? = null,
-)
+sealed interface GetProfileResult {
+    data class Success(val authCurrentUser: AuthCurrentUser, val isAdmin: Boolean) :
+        GetProfileResult
+
+    data object Failed : GetProfileResult
+
+    data object EmailVerify : GetProfileResult
+}

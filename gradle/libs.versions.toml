@@ -17,7 +17,6 @@ hilt = "2.51.1"
 kotlin = "2.0.0"
 kotlinxSerializationJson = "1.6.3"
 ksp = "2.0.0-1.0.21"
-noarg = "2.0.0"
 playServicesBase = "18.5.0"
 playServicesCodeScanner = "16.1.0"
 
@@ -69,5 +68,4 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-noarg = { id = "org.jetbrains.kotlin.plugin.noarg", version.ref = "noarg" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

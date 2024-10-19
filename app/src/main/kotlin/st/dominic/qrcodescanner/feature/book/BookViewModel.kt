@@ -30,13 +30,13 @@ class BookViewModel @Inject constructor(
             }
 
             when (val getBooksResult = getBooksUseCase()) {
-                GetBooksResult.NotEmailVerified -> {
+                GetBooksResult.EmailVerify -> {
                     _bookUiState.update {
                         BookUiState.NotEmailVerified
                     }
                 }
 
-                GetBooksResult.NotSignedIn -> {
+                GetBooksResult.Failed -> {
                     _bookUiState.update {
                         BookUiState.NotSignedIn
                     }

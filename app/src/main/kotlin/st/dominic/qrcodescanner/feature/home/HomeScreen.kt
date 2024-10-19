@@ -95,6 +95,8 @@ fun HomeScreen(
         currentDestination.isTopLevelDestinationInHierarchy(destination.route)
     }?.label ?: topLevelDestinations.first().label
 
+    val isAdmin = getProfileResult is GetProfileResult.Success && getProfileResult.isAdmin
+
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             topLevelDestinations.forEach { destination ->
@@ -127,7 +129,7 @@ fun HomeScreen(
         }, snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }, floatingActionButton = {
-            if (getProfileResult?.isSignedIn == true) {
+            if (isAdmin) {
                 FloatingActionButton(onClick = onFloatingActionButtonClick) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = "")
                 }

@@ -10,13 +10,13 @@ class GetBooksUseCase @Inject constructor(
     private val emailPasswordAuthenticationRepository: EmailPasswordAuthenticationRepository,
 ) {
     suspend operator fun invoke(): GetBooksResult {
-        val currentUser = emailPasswordAuthenticationRepository.getCurrentUser()
-            ?: return GetBooksResult.NotSignedIn
+        val currentUser =
+            emailPasswordAuthenticationRepository.getCurrentUser() ?: return GetBooksResult.Failed
 
         return if (currentUser.isEmailVerified) {
-            GetBooksResult.Success(bookRepository.getBorrowedBooksByStudentId(studentId = currentUser.uid))
+            GetBooksResult.Success(books = bookRepository.getBorrowedBooksByStudentId(studentId = currentUser.uid))
         } else {
-            return GetBooksResult.NotEmailVerified
+            return GetBooksResult.EmailVerify
         }
     }
 }

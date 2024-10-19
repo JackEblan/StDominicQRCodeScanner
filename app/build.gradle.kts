@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.noarg)
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -52,10 +51,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-}
-
-noArg {
-    annotation("st.dominic.qrcodescanner.core.network.model.NoArg")
 }
 
 dependencies {

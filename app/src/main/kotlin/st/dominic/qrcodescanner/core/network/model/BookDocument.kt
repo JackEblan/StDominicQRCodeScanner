@@ -1,8 +1,10 @@
 package st.dominic.qrcodescanner.core.network.model
 
+import androidx.annotation.Keep
 import com.google.firebase.Timestamp
 import st.dominic.qrcodescanner.core.model.BookStatus
 
+@Keep
 data class BookDocument(
     val id: String? = null,
     val imageUrl: String? = null,

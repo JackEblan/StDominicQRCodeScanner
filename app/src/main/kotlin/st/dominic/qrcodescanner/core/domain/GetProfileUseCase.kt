@@ -10,21 +10,16 @@ class GetProfileUseCase @Inject constructor(
     private val adminRepository: AdminRepository,
 ) {
     suspend operator fun invoke(): GetProfileResult {
-        val authCurrentUser = emailPasswordAuthenticationRepository.getCurrentUser()
+        val authCurrentUser =
+            emailPasswordAuthenticationRepository.getCurrentUser() ?: return GetProfileResult.Failed
 
-        return if (authCurrentUser != null) {
-            GetProfileResult(
-                uid = authCurrentUser.uid,
-                displayName = authCurrentUser.displayName,
-                email = authCurrentUser.email,
-                isSignedIn = true,
-                isEmailVerified = authCurrentUser.isEmailVerified,
+        return if (authCurrentUser.isEmailVerified) {
+            GetProfileResult.Success(
+                authCurrentUser = authCurrentUser,
                 isAdmin = adminRepository.isAdmin(id = authCurrentUser.uid)
             )
         } else {
-            GetProfileResult(
-                isSignedIn = false,
-            )
+            GetProfileResult.EmailVerify
         }
     }
 }
