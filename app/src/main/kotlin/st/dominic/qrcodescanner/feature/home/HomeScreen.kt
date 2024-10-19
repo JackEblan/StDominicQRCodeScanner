@@ -95,8 +95,6 @@ fun HomeScreen(
         currentDestination.isTopLevelDestinationInHierarchy(destination.route)
     }?.label ?: topLevelDestinations.first().label
 
-    val isAdmin = getProfileResult is GetProfileResult.Success && getProfileResult.isAdmin
-
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             topLevelDestinations.forEach { destination ->
@@ -122,14 +120,13 @@ fun HomeScreen(
                 title = {
                     Text(
                         text = stringResource(id = topBarTitleStringResource),
-                        style = MaterialTheme.typography.titleLarge,
                     )
                 },
             )
         }, snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         }, floatingActionButton = {
-            if (isAdmin) {
+            if (getProfileResult is GetProfileResult.Success) {
                 FloatingActionButton(onClick = onFloatingActionButtonClick) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = "")
                 }

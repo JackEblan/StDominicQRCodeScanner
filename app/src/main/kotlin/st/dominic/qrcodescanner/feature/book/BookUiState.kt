@@ -7,7 +7,7 @@ sealed interface BookUiState {
 
     data object Loading : BookUiState
 
-    data object NotSignedIn: BookUiState
+    data object Failed: BookUiState
 
-    data object NotEmailVerified: BookUiState
+    data object EmailVerify: BookUiState
 }

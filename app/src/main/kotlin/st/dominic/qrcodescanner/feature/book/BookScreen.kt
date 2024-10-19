@@ -46,36 +46,49 @@ fun BookScreen(
     modifier: Modifier,
     bookUiState: BookUiState?,
 ) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        when (bookUiState) {
-            BookUiState.Loading, null -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
+    when (bookUiState) {
+        BookUiState.Loading, null -> {
+            LoadingState(modifier = modifier)
+        }
 
-            is BookUiState.Success -> {
-                if (bookUiState.books.isNotEmpty()) {
-                    SuccessState(
-                        bookUiState = bookUiState,
-                    )
-                } else {
-                    EmptyState(title = "No books found!", subtitle = "Borrow your first book")
-                }
-            }
-
-            BookUiState.NotEmailVerified -> {
-                EmptyState(
-                    title = "Email not verified!", subtitle = "Please verify your email first!"
+        is BookUiState.Success -> {
+            if (bookUiState.books.isNotEmpty()) {
+                SuccessState(
+                    modifier = modifier,
+                    bookUiState = bookUiState,
                 )
-            }
-
-            BookUiState.NotSignedIn -> {
+            } else {
                 EmptyState(
-                    title = "Sign in an account!", subtitle = "Please sign in an account first!"
+                    modifier = modifier,
+                    title = "No books found!",
+                    subtitle = "Borrow your first book"
                 )
             }
         }
+
+        BookUiState.EmailVerify -> {
+            EmptyState(
+                modifier = modifier,
+                title = "Email not verified!",
+                subtitle = "Please verify your email first!"
+            )
+        }
+
+        BookUiState.Failed -> {
+            EmptyState(
+                modifier = modifier,
+                title = "Sign in an account!",
+                subtitle = "Please sign in an account first!"
+            )
+        }
+    }
+
+}
+
+@Composable
+private fun LoadingState(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize()) {
+        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
     }
 }
 

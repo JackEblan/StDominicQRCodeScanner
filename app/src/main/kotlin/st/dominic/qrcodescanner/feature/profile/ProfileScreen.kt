@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import st.dominic.qrcodescanner.core.model.GetProfileResult
 
 @Composable
 fun ProfileRoute(
@@ -30,10 +29,10 @@ fun ProfileRoute(
     onSignIn: () -> Unit,
     onManagement: () -> Unit,
 ) {
-    val getProfileResult = viewModel.profile.collectAsStateWithLifecycle().value
+    val profileUiState = viewModel.profileUiState.collectAsStateWithLifecycle().value
 
     ProfileScreen(modifier = modifier,
-                  getProfileResult = getProfileResult,
+                  profileUiState = profileUiState,
                   onSignIn = onSignIn,
                   onManagement = onManagement,
                   onSignOut = {
@@ -45,37 +44,37 @@ fun ProfileRoute(
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
-    getProfileResult: GetProfileResult?,
+    profileUiState: ProfileUiState?,
     onSignIn: () -> Unit,
     onManagement: () -> Unit,
     onSignOut: () -> Unit,
 ) {
-    when (getProfileResult) {
-        is GetProfileResult.Success -> {
-            Profile(
-                modifier = modifier,
-                getProfileResult = getProfileResult,
-                onManagement = onManagement,
-                onSignOut = onSignOut
-            )
+    when (profileUiState) {
+        ProfileUiState.EmailVerify -> {
+            EmailVerify(modifier = modifier, onSignOut = onSignOut)
         }
 
-        GetProfileResult.Failed -> {
+        ProfileUiState.Failed -> {
             SignIn(modifier = modifier, onSignIn = onSignIn)
         }
 
-        GetProfileResult.EmailVerify -> {
-            VerifyEmail(modifier = modifier, onSignOut = onSignOut)
+        ProfileUiState.Loading, null -> {
+            LoadingState(modifier = modifier)
         }
 
-        null -> {
-            Loading()
+        is ProfileUiState.Success -> {
+            Profile(
+                modifier = modifier,
+                profileUiState = profileUiState,
+                onManagement = onManagement,
+                onSignOut = onSignOut
+            )
         }
     }
 }
 
 @Composable
-private fun Loading(modifier: Modifier = Modifier) {
+private fun LoadingState(modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize()) {
         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
     }
@@ -111,7 +110,7 @@ private fun SignIn(
 }
 
 @Composable
-private fun VerifyEmail(
+private fun EmailVerify(
     modifier: Modifier = Modifier, onSignOut: () -> Unit,
 ) {
     Column(
@@ -142,7 +141,7 @@ private fun VerifyEmail(
 @Composable
 private fun Profile(
     modifier: Modifier = Modifier,
-    getProfileResult: GetProfileResult.Success,
+    profileUiState: ProfileUiState.Success,
     onManagement: () -> Unit,
     onSignOut: () -> Unit
 ) {
@@ -151,13 +150,13 @@ private fun Profile(
             .fillMaxSize()
             .padding(10.dp),
     ) {
-        ProfileText(title = "Name", subtitle = getProfileResult.authCurrentUser.displayName)
+        ProfileText(title = "Name", subtitle = profileUiState.authCurrentUser.displayName)
 
-        ProfileText(title = "User ID", subtitle = getProfileResult.authCurrentUser.uid)
+        ProfileText(title = "User ID", subtitle = profileUiState.authCurrentUser.uid)
 
-        ProfileText(title = "Email", subtitle = getProfileResult.authCurrentUser.email)
+        ProfileText(title = "Email", subtitle = profileUiState.authCurrentUser.email)
 
-        if (getProfileResult.isAdmin) {
+        if (profileUiState.isAdmin) {
             Button(onClick = onManagement) {
                 Text(text = "Management")
             }

@@ -18,11 +18,11 @@ class BorrowBookUseCase @Inject constructor(
 
         bookRepository.uploadBookPhoto(
             file = localBook.imageUri, fileName = bookId
-        ).onSuccess {
+        ).onSuccess { imageUrl->
             bookRepository.addBook(
                 Book(
                     id = bookId,
-                    imageUrl = it,
+                    imageUrl = imageUrl,
                     qrCode = localBook.qrCode,
                     title = localBook.title,
                     author = localBook.author,

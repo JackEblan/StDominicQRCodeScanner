@@ -2,6 +2,7 @@ package st.dominic.qrcodescanner.core.network.storage
 
 import android.net.Uri
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -17,6 +18,7 @@ class DefaultStorageDataSource @Inject constructor(
 
     override val progress = _progress.asSharedFlow()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun uploadFile(
         file: Uri, ref: String, fileName: String
     ): Result<String> {
@@ -50,6 +52,8 @@ class DefaultStorageDataSource @Inject constructor(
                 }
 
                 continuation.invokeOnCancellation {
+                    _progress.resetReplayCache()
+
                     uploadTask.cancel()
                 }
             }

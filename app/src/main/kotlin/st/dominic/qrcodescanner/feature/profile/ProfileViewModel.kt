@@ -19,9 +19,9 @@ class ProfileViewModel @Inject constructor(
     private val emailPasswordAuthenticationRepository: EmailPasswordAuthenticationRepository,
     private val getProfileUseCase: GetProfileUseCase,
 ) : ViewModel() {
-    private val _profile = MutableStateFlow<GetProfileResult?>(null)
+    private val _profileUiState = MutableStateFlow<ProfileUiState?>(null)
 
-    val profile = _profile.onStart { getProfile() }.stateIn(
+    val profileUiState = _profileUiState.onStart { getProfile() }.stateIn(
         scope = viewModelScope, started = SharingStarted.WhileSubscribed(), initialValue = null
     )
 
@@ -31,8 +31,31 @@ class ProfileViewModel @Inject constructor(
 
     private fun getProfile() {
         viewModelScope.launch {
-            _profile.update {
-                getProfileUseCase()
+            _profileUiState.update {
+                ProfileUiState.Loading
+            }
+
+            when (val getProfileResult = getProfileUseCase()) {
+                GetProfileResult.EmailVerify -> {
+                    _profileUiState.update {
+                        ProfileUiState.EmailVerify
+                    }
+                }
+
+                GetProfileResult.Failed -> {
+                    _profileUiState.update {
+                        ProfileUiState.Failed
+                    }
+                }
+
+                is GetProfileResult.Success -> {
+                    _profileUiState.update {
+                        ProfileUiState.Success(
+                            authCurrentUser = getProfileResult.authCurrentUser,
+                            isAdmin = getProfileResult.isAdmin
+                        )
+                    }
+                }
             }
         }
     }
