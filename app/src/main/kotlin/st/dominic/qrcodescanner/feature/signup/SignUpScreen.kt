@@ -92,8 +92,8 @@ fun SignUpScreen(
     }) { paddingValues ->
         Box(
             modifier = modifier
-                .fillMaxSize()
                 .padding(paddingValues)
+                .fillMaxSize()
                 .consumeWindowInsets(paddingValues),
         ) {
             when (signUpUiState) {
