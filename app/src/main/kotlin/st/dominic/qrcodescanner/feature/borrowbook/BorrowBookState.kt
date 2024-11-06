@@ -27,14 +27,32 @@ class BorrowBookState {
 
     var author by mutableStateOf("")
 
+    var snackbarMessage by mutableStateOf("")
+
     fun buildLocalBook(): LocalBook? {
-        return if (imageUri != Uri.EMPTY && qrCode.isNotEmpty() && title.isNotEmpty() && author.isNotEmpty()) {
-            LocalBook(
-                imageUri = imageUri, qrCode = qrCode, title = title, author = author
-            )
-        } else {
-            null
+        if (imageUri == Uri.EMPTY) {
+            snackbarMessage = "Image is empty"
+            return null
         }
+
+        if (qrCode.isEmpty()) {
+            snackbarMessage = "QR Code is empty"
+            return null
+        }
+
+        if (title.isEmpty()) {
+            snackbarMessage = "Title is empty"
+            return null
+        }
+
+        if (author.isEmpty()) {
+            snackbarMessage = "Author is empty"
+            return null
+        }
+
+        return LocalBook(
+            imageUri = imageUri, qrCode = qrCode, title = title, author = author
+        )
     }
 
     companion object {

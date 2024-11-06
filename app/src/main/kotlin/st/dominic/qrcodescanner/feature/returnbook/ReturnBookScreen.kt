@@ -19,15 +19,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
-import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -35,7 +33,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -84,8 +81,6 @@ fun ReturnBookScreen(
     onReturnBook: () -> Unit,
     onNavigateUp: () -> Unit
 ) {
-    val topAppBarScrollBehavior = enterAlwaysScrollBehavior()
-
     val snackbarHostState = remember {
         SnackbarHostState()
     }
@@ -101,14 +96,13 @@ fun ReturnBookScreen(
     }
 
     Scaffold(topBar = {
-        LargeTopAppBar(
+        TopAppBar(
             title = {
                 Text(
                     text = stringResource(id = R.string.return_book),
                     style = MaterialTheme.typography.titleLarge,
                 )
             },
-            scrollBehavior = topAppBarScrollBehavior,
         )
     }, floatingActionButton = {
         FloatingActionButton(onClick = onStartScan) {
@@ -128,8 +122,7 @@ fun ReturnBookScreen(
 
                 is ReturnBookUiState.Success -> {
                     if (returnBookUiState.book != null) {
-                        SuccessState(topAppBarScrollBehavior = topAppBarScrollBehavior,
-                                     scrollState = scrollState,
+                        SuccessState(scrollState = scrollState,
                                      paddingValues = paddingValues,
                                      book = returnBookUiState.book,
                                      qrCodeResult = qrCodeResultState,
@@ -149,11 +142,9 @@ fun ReturnBookScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SuccessState(
     modifier: Modifier = Modifier,
-    topAppBarScrollBehavior: TopAppBarScrollBehavior,
     scrollState: ScrollState,
     paddingValues: PaddingValues,
     book: Book,
@@ -180,7 +171,6 @@ private fun SuccessState(
 
     Column(
         modifier = modifier
-            .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
             .verticalScroll(scrollState)
             .fillMaxSize()
             .padding(paddingValues)

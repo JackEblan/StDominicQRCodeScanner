@@ -1,7 +1,6 @@
 package st.dominic.qrcodescanner.feature.book
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,10 +32,13 @@ import st.dominic.qrcodescanner.core.model.BookStatus
 fun BookRoute(
     modifier: Modifier = Modifier, bookViewModel: BookViewModel = hiltViewModel(),
 ) {
+    val profileUiState = bookViewModel.profileUiState.collectAsStateWithLifecycle().value
+
     val bookUiState = bookViewModel.bookUiState.collectAsStateWithLifecycle().value
 
     BookScreen(
         modifier = modifier,
+        profileUiState = profileUiState,
         bookUiState = bookUiState,
     )
 }
@@ -44,29 +46,19 @@ fun BookRoute(
 @Composable
 fun BookScreen(
     modifier: Modifier,
+    profileUiState: ProfileUiState?,
     bookUiState: BookUiState?,
 ) {
-    when (bookUiState) {
-        BookUiState.Loading, null -> {
-            LoadingState(modifier = modifier)
+    when (profileUiState) {
+        ProfileUiState.Loading, null -> {
+            LoadingState(modifier = modifier, text = "Checking User Data")
         }
 
-        is BookUiState.Success -> {
-            if (bookUiState.books.isNotEmpty()) {
-                SuccessState(
-                    modifier = modifier,
-                    bookUiState = bookUiState,
-                )
-            } else {
-                EmptyState(
-                    modifier = modifier,
-                    title = "No books found!",
-                    subtitle = "Borrow your first book"
-                )
-            }
+        is ProfileUiState.Success -> {
+            BookState(modifier = modifier, bookUiState = bookUiState)
         }
 
-        BookUiState.EmailVerify -> {
+        ProfileUiState.EmailVerify -> {
             EmptyState(
                 modifier = modifier,
                 title = "Email not verified!",
@@ -74,7 +66,7 @@ fun BookScreen(
             )
         }
 
-        BookUiState.Failed -> {
+        ProfileUiState.Failed -> {
             EmptyState(
                 modifier = modifier,
                 title = "Sign in an account!",
@@ -86,28 +78,56 @@ fun BookScreen(
 }
 
 @Composable
-private fun LoadingState(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize()) {
-        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+private fun LoadingState(modifier: Modifier = Modifier, text: String) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator()
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(text = text)
     }
 }
 
 @Composable
-private fun SuccessState(
+private fun BookState(modifier: Modifier = Modifier, bookUiState: BookUiState?) {
+    when (bookUiState) {
+        BookUiState.Loading, null -> {
+            LoadingState(modifier = modifier, text = "Fetching Books")
+        }
+
+        is BookUiState.Success -> {
+            if (bookUiState.books.isNotEmpty()) {
+                BookSuccessState(modifier = modifier, books = bookUiState.books)
+            } else {
+                EmptyState(
+                    modifier = modifier,
+                    title = "No books found!",
+                    subtitle = "Borrow your first book"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BookSuccessState(
     modifier: Modifier = Modifier,
-    bookUiState: BookUiState.Success,
+    books: List<Book>,
 ) {
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(300.dp),
         modifier = modifier.fillMaxSize(),
     ) {
-        items(bookUiState.books) { book ->
+        items(books) { book ->
             BookItem(
                 book = book,
             )
         }
     }
-
 }
 
 @Composable

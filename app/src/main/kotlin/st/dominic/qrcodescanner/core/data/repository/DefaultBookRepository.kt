@@ -14,7 +14,7 @@ class DefaultBookRepository @Inject constructor(
 ) : BookRepository {
     override val progress get() = storageDataSource.progress
 
-    override suspend fun getBorrowedBooksByStudentId(studentId: String): List<Book> {
+    override suspend fun getBorrowedBooksByStudentId(studentId: String): Flow<List<Book>> {
         return bookDataSource.getBorrowedBooksDocumentsByStudentId(studentId = studentId)
     }
 

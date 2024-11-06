@@ -3,48 +3,69 @@ package st.dominic.qrcodescanner.feature.book
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import st.dominic.qrcodescanner.core.domain.GetBooksUseCase
-import st.dominic.qrcodescanner.core.model.GetBooksResult
+import st.dominic.qrcodescanner.core.data.repository.BookRepository
+import st.dominic.qrcodescanner.core.domain.GetProfileUseCase
+import st.dominic.qrcodescanner.core.model.GetProfileResult
 import javax.inject.Inject
 
 @HiltViewModel
 class BookViewModel @Inject constructor(
-    private val getBooksUseCase: GetBooksUseCase,
+    private val getProfileUseCase: GetProfileUseCase,
+    private val bookRepository: BookRepository,
 ) : ViewModel() {
-    private val _bookUiState = MutableStateFlow<BookUiState?>(null)
+    private val _profileUiState = MutableStateFlow<ProfileUiState?>(null)
 
-    val bookUiState = _bookUiState.onStart { getBooks() }.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(), initialValue = null
+    val profileUiState = _profileUiState.onStart { getUser() }.stateIn(
+        scope = viewModelScope, started = SharingStarted.Lazily, initialValue = null
     )
 
-    private fun getBooks() {
+    private val _id = MutableStateFlow<String?>(null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val bookUiState =
+        _id.filterNotNull().flatMapLatest { bookRepository.getBorrowedBooksByStudentId(it) }
+            .map(BookUiState::Success).stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = null
+            )
+
+    private fun getUser() {
         viewModelScope.launch {
-            _bookUiState.update {
-                BookUiState.Loading
+            _profileUiState.update {
+                ProfileUiState.Loading
             }
 
-            when (val getBooksResult = getBooksUseCase()) {
-                GetBooksResult.EmailVerify -> {
-                    _bookUiState.update {
-                        BookUiState.EmailVerify
+            when (val result = getProfileUseCase()) {
+                GetProfileResult.EmailVerify -> {
+                    _profileUiState.update {
+                        ProfileUiState.EmailVerify
                     }
                 }
 
-                GetBooksResult.Failed -> {
-                    _bookUiState.update {
-                        BookUiState.Failed
+                GetProfileResult.Failed -> {
+                    _profileUiState.update {
+                        ProfileUiState.Failed
                     }
                 }
 
-                is GetBooksResult.Success -> {
-                    _bookUiState.update {
-                        BookUiState.Success(books = getBooksResult.books)
+                is GetProfileResult.Success -> {
+                    _profileUiState.update {
+                        ProfileUiState.Success
+                    }
+
+                    _id.update {
+                        result.authCurrentUser.uid
                     }
                 }
             }

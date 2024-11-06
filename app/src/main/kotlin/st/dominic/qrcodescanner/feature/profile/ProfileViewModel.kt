@@ -23,7 +23,7 @@ class ProfileViewModel @Inject constructor(
     private val _profileUiState = MutableStateFlow<ProfileUiState?>(null)
 
     val profileUiState = _profileUiState.onStart { getProfile() }.stateIn(
-        scope = viewModelScope, started = SharingStarted.WhileSubscribed(), initialValue = null
+        scope = viewModelScope, started = SharingStarted.Lazily, initialValue = null
     )
 
     private val _emailVerificationResult = MutableStateFlow<Boolean?>(null)

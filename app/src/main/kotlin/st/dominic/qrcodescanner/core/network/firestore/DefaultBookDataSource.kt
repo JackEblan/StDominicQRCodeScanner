@@ -22,14 +22,16 @@ import javax.inject.Inject
 class DefaultBookDataSource @Inject constructor(
     private val firestore: FirebaseFirestore,
 ) : BookDataSource {
-    override suspend fun getBorrowedBooksDocumentsByStudentId(studentId: String): List<Book> {
+    override suspend fun getBorrowedBooksDocumentsByStudentId(studentId: String): Flow<List<Book>> {
         return firestore.collection(BOOK_COLLECTION).whereEqualTo(STUDENT_ID, studentId)
-            .orderBy(DATE_BORROWED, Query.Direction.DESCENDING).get().await()
-            .mapNotNull { queryDocumentSnapshot ->
-                try {
-                    toBook(bookDocument = queryDocumentSnapshot.toObject<BookDocument>())
-                } catch (e: RuntimeException) {
-                    null
+            .orderBy(DATE_BORROWED, Query.Direction.DESCENDING).snapshots()
+            .mapNotNull { querySnapshots ->
+                querySnapshots.mapNotNull { queryDocumentSnapshot ->
+                    try {
+                        toBook(bookDocument = queryDocumentSnapshot.toObject<BookDocument>())
+                    } catch (e: RuntimeException) {
+                        null
+                    }
                 }
             }
     }

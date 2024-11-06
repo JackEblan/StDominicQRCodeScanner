@@ -9,7 +9,7 @@ import st.dominic.qrcodescanner.core.model.BookStatus
 interface BookRepository {
     val progress: SharedFlow<Float?>
 
-    suspend fun getBorrowedBooksByStudentId(studentId: String): List<Book>
+    suspend fun getBorrowedBooksByStudentId(studentId: String): Flow<List<Book>>
 
     fun getBorrowedBooks(): Flow<List<Book>>
 

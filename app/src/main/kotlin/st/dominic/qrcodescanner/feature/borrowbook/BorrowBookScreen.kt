@@ -31,7 +31,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -39,7 +38,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.launch
 import st.dominic.qrcodescanner.R
 import st.dominic.qrcodescanner.core.designsystem.component.ShimmerImage
 import st.dominic.qrcodescanner.core.model.LocalBook
@@ -92,8 +90,6 @@ fun BorrowBookScreen(
         SnackbarHostState()
     }
 
-    val scope = rememberCoroutineScope()
-
     val pickImage = rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
         if (uri != null) {
             borrowBookState.imageUri = uri
@@ -126,6 +122,14 @@ fun BorrowBookScreen(
         }
     }
 
+    LaunchedEffect(key1 = borrowBookState.snackbarMessage) {
+        if (borrowBookState.snackbarMessage.isNotEmpty()) {
+            snackbarHostState.showSnackbar(
+                message = borrowBookState.snackbarMessage, duration = SnackbarDuration.Short
+            )
+        }
+    }
+
     Scaffold(topBar = {
         TopAppBar(
             title = {
@@ -140,8 +144,6 @@ fun BorrowBookScreen(
 
             if (bookProgress == null && localBook != null) {
                 onBorrowBook(localBook)
-            } else {
-                scope.launch { snackbarHostState.showSnackbar(message = "We cannot process your request!") }
             }
         }) {
             Icon(imageVector = Icons.Default.Upload, contentDescription = "")
